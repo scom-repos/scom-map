@@ -60,8 +60,8 @@ declare module "@scom/scom-map/scconfig.json.ts" {
         main: string;
         modules: {};
         apiKey: string;
-        apiUrl: string;
         embeddedUrl: string;
+        apiUrl: string;
     };
     export default _default;
 }

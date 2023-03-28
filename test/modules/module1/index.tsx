@@ -12,8 +12,8 @@ export default class Module1 extends Module {
     async init() {
         super.init();
         this.mapElm = await ScomMap.create({
-            lat: 10.854243499999999,
-            long: 106.62792019999999
+            lat: 10.797079,
+            long: 106.6455165
         });
         this.mainStack.appendChild(this.mapElm);
     }
@@ -22,8 +22,8 @@ export default class Module1 extends Module {
         return <i-panel>
             <i-hstack id="mainStack" margin={{top: '1rem', left: '1rem'}} gap="2rem">
                <i-scom-map
-                lat={106.68254379999999}
-                long={10.764131299999999}
+                lat={10.774391}
+                long={106.662705}
                 width={500}
                 height={300}
                ></i-scom-map>
