@@ -13,7 +13,9 @@ export default class Module1 extends Module {
         super.init();
         this.mapElm = await ScomMap.create({
             lat: 10.797079,
-            long: 106.6455165
+            long: 106.6455165,
+            address: "Hdwebsoft",
+            zoom: 15
         });
         this.mainStack.appendChild(this.mapElm);
     }
@@ -24,6 +26,7 @@ export default class Module1 extends Module {
                <i-scom-map
                 lat={10.774391}
                 long={106.662705}
+                viewMode="satellite"
                 width={500}
                 height={300}
                ></i-scom-map>
