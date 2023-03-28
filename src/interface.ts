@@ -36,7 +36,12 @@ export interface PageBlock {
   discard: () => Promise<void>;
 }
 
+export type ViewModeType = 'roadmap' | 'satellite'
+
 export interface IData {
 	long?: number;
   lat?: number;
+  viewMode?: ViewModeType;
+  zoom?: number;
+  address?: string;
 }

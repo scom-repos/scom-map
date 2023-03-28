@@ -5,14 +5,14 @@ import {
   Container,
   ControlElement,
   customElements,
-  Panel,
   Iframe
 } from '@ijstech/components'
-import { IData, PageBlock } from './interface'
+import { IData, PageBlock, ViewModeType } from './interface'
 import { getAPIKey, getAPIUrl, getEmbeddedUrl, setDataFromSCConfig } from './store'
 import './index.css'
 import scconfig from './scconfig.json'
 
+const DEFAULT_ZOOM = 14;
 const configSchema = {
   type: 'object',
   required: [],
@@ -29,6 +29,9 @@ const configSchema = {
 interface ScomMapElement extends ControlElement {
   long?: number;
   lat?: number;
+  viewMode?: ViewModeType;
+  zoom?: number;
+  address?: string;
 }
 
 declare global {
@@ -39,24 +42,11 @@ declare global {
   }
 }
 
-declare global {
-  interface Window {
-    initMap: () => void;
-  }
-}
-
 @customModule
 @customElements('i-scom-map')
 export default class ScomMap extends Module implements PageBlock {
-  private data: IData = {
-    long: 0,
-    lat: 0
-  }
-  private oldData: IData = {
-    long: 0,
-    lat: 0
-  }
-  // private pnlMap: Panel;
+  private data: IData = {}
+  private oldData: IData = {}
   private iframeElm: Iframe;
 
   tag: any
@@ -77,34 +67,6 @@ export default class ScomMap extends Module implements PageBlock {
       setDataFromSCConfig(scconfig)
     }
   }
-  
-  private get apiUrl() {
-    return getAPIUrl().replace('{API_KEY}', getAPIKey())
-  }
-
-  private get embeddedUrl() {
-    return getEmbeddedUrl()
-      .replace('{API_KEY}', getAPIKey())
-  }
-
-  // private loadScript() {
-  //   const scripts = document.getElementsByTagName('script')
-  //   const added = Array.from(scripts).find(script => script.id === 'embeddedScript')
-  //   if (added) return;
-  //   let newScript = document.createElement('script');
-  //   newScript.id = 'embeddedScript'
-  //   newScript.setAttribute('src', this.apiUrl);
-  //   document.body.appendChild(newScript);
-  // }
-
-  // private initMap() {
-  //   let self = this;
-  //   let map: google.maps.Map;
-  //   map = new google.maps.Map(self.pnlMap as HTMLElement, {
-  //     center: { lat: -34.397, lng: 150.644 },
-  //     zoom: 8,
-  //   });
-  // }
 
   init() {
     super.init()
@@ -114,9 +76,12 @@ export default class ScomMap extends Module implements PageBlock {
       width: width ? this.width : '500px',
       height: height ? this.height : '300px'
     })
-    const long = this.getAttribute('long', true, 0)
-    const lat = this.getAttribute('lat', true, 0)
-    this.setData({long, lat});
+    this.data.long = this.getAttribute('long', true, 0)
+    this.data.lat = this.getAttribute('lat', true, 0)
+    this.data.viewMode = this.getAttribute('viewMode', true, 'roadmap')
+    this.data.zoom = this.getAttribute('zoom', true, DEFAULT_ZOOM)
+    this.data.address = this.getAttribute('address', true, '')
+    this.setData(this.data);
   }
 
   static async create(options?: ScomMapElement, parent?: Container) {
@@ -126,17 +91,38 @@ export default class ScomMap extends Module implements PageBlock {
   }
 
   get long() {
-    return this.data.long ?? 0
+    return this.data.long ?? 0;
   }
   set long(value: number) {
     this.data.long = value;
   }
 
   get lat() {
-    return this.data.lat ?? 0
+    return this.data.lat ?? 0;
   }
   set lat(value: number) {
     this.data.lat = value;
+  }
+
+  get viewMode() {
+    return this.data.viewMode ?? 'roadmap';
+  }
+  set viewMode(value: ViewModeType) {
+    this.data.viewMode = value;
+  }
+
+  get address() {
+    return this.data.address ?? '';
+  }
+  set address(value: string) {
+    this.data.address = value;
+  }
+
+  get zoom() {
+    return this.data.zoom ?? DEFAULT_ZOOM;
+  }
+  set zoom(value: number) {
+    this.data.zoom = value;
   }
 
   getConfigSchema() {
@@ -147,10 +133,28 @@ export default class ScomMap extends Module implements PageBlock {
     return this.data
   }
 
+  private getUrl() {
+    const baseUrl = getAPIUrl();
+    const params = new URLSearchParams();
+    params.append('key', getAPIKey());
+    const position = `${this.lat},${this.long}`;
+    if (this.address) {
+      params.append('q', this.address);
+      if (this.lat || this.long)
+        params.append('center', position);
+    } else {
+      params.append('q', position);
+    }
+    params.append('zoom', this.zoom.toString());
+    params.append('maptype', this.viewMode);
+    return `${baseUrl}?${params.toString()}`;
+  }
+
   async setData(value: IData) {
     this.oldData = this.data
     this.data = value
-    const url = this.embeddedUrl.replace('{lat}', this.data.lat.toString()).replace('{long}', this.data.long.toString())
+    const url = this.getUrl()
+    // this.embeddedUrl.replace('{lat}', this.data.lat.toString()).replace('{long}', this.data.long.toString())
     this.iframeElm.url = url
   }
 
@@ -171,12 +175,27 @@ export default class ScomMap extends Module implements PageBlock {
     const propertiesSchema: IDataSchema = {
       type: 'object',
       properties: {
-        url: {
-          type: 'string',
-          minLength: 1,
-          required: true,
+        address: {
+          type: 'string'
         },
-      },
+        latitude: {
+          type: 'number'
+        },
+        longitude: {
+          type: 'number'
+        },
+        zoom: {
+          type: 'number',
+          minimum: 0,
+          maximum: 21,
+          default: DEFAULT_ZOOM
+        },
+        viewMode: {
+          type: "string",
+          enum: ['roadmap', 'satellite'],
+          default: 'roadmap'
+        }
+      }
     }
 
     const themeSchema: IDataSchema = {
@@ -200,12 +219,27 @@ export default class ScomMap extends Module implements PageBlock {
     const propertiesSchema: IDataSchema = {
       type: 'object',
       properties: {
-        url: {
-          type: 'string',
-          minLength: 1,
-          required: true,
+        address: {
+          type: 'string'
         },
-      },
+        latitude: {
+          type: 'number'
+        },
+        longitude: {
+          type: 'number'
+        },
+        zoom: {
+          type: 'number',
+          minimum: 0,
+          maximum: 21,
+          default: DEFAULT_ZOOM
+        },
+        viewMode: {
+          type: "string",
+          enum: ['roadmap', 'satellite'],
+          default: 'roadmap'
+        }
+      }
     }
 
     const themeSchema: IDataSchema = {
@@ -231,6 +265,8 @@ export default class ScomMap extends Module implements PageBlock {
         command: (builder: any, userInputData: any) => {
           return {
             execute: () => {
+              userInputData.lat = userInputData.latitude
+              userInputData.long = userInputData.longitude
               if (builder?.setData) builder.setData(userInputData)
               this.setData(userInputData)
             },

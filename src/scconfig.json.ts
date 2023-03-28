@@ -6,7 +6,7 @@ export default {
   "main": "@scom-map/main",
   "modules": {
   },
-  "apiKey": "AIzaSyDlYg9elOfuDfsnEyzONb5kf62pplJKlzM",
-  "embeddedUrl": "https://maps.google.com/maps?hl=en&q={lat},{long}&t=&z=14&ie=UTF8&iwloc=B&output=embed",
-  "apiUrl": "https://www.google.com/maps/embed/v1/place?key={API_KEY}&q={long},{lat}"
+  "apiKey": "",
+  "apiUrl": "https://www.google.com/maps/embed/v1/place",
+  "embeddedUrl": "https://maps.google.com/maps?hl=en&q={lat},{long}&t=h&z=14&ie=UTF8&iwloc=B&output=embed"
 }

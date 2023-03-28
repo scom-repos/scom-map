@@ -137,14 +137,15 @@ define("@scom/scom-map/scconfig.json.ts", ["require", "exports"], function (requ
         "moduleDir": "src",
         "main": "@scom-map/main",
         "modules": {},
-        "apiKey": "AIzaSyDlYg9elOfuDfsnEyzONb5kf62pplJKlzM",
-        "embeddedUrl": "https://maps.google.com/maps?hl=en&q={lat},{long}&t=&z=14&ie=UTF8&iwloc=B&output=embed",
-        "apiUrl": "https://www.google.com/maps/embed/v1/place?key={API_KEY}&q={long},{lat}"
+        "apiKey": "",
+        "apiUrl": "https://www.google.com/maps/embed/v1/place",
+        "embeddedUrl": "https://maps.google.com/maps?hl=en&q={lat},{long}&t=h&z=14&ie=UTF8&iwloc=B&output=embed"
     };
 });
 define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/scom-map/store.ts", "@scom/scom-map/scconfig.json.ts", "@scom/scom-map/index.css.ts"], function (require, exports, components_2, store_1, scconfig_json_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    const DEFAULT_ZOOM = 14;
     const configSchema = {
         type: 'object',
         required: [],
@@ -160,42 +161,12 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
     let ScomMap = class ScomMap extends components_2.Module {
         constructor(parent, options) {
             super(parent, options);
-            this.data = {
-                long: 0,
-                lat: 0
-            };
-            this.oldData = {
-                long: 0,
-                lat: 0
-            };
+            this.data = {};
+            this.oldData = {};
             if (scconfig_json_1.default) {
                 store_1.setDataFromSCConfig(scconfig_json_1.default);
             }
         }
-        get apiUrl() {
-            return store_1.getAPIUrl().replace('{API_KEY}', store_1.getAPIKey());
-        }
-        get embeddedUrl() {
-            return store_1.getEmbeddedUrl()
-                .replace('{API_KEY}', store_1.getAPIKey());
-        }
-        // private loadScript() {
-        //   const scripts = document.getElementsByTagName('script')
-        //   const added = Array.from(scripts).find(script => script.id === 'embeddedScript')
-        //   if (added) return;
-        //   let newScript = document.createElement('script');
-        //   newScript.id = 'embeddedScript'
-        //   newScript.setAttribute('src', this.apiUrl);
-        //   document.body.appendChild(newScript);
-        // }
-        // private initMap() {
-        //   let self = this;
-        //   let map: google.maps.Map;
-        //   map = new google.maps.Map(self.pnlMap as HTMLElement, {
-        //     center: { lat: -34.397, lng: 150.644 },
-        //     zoom: 8,
-        //   });
-        // }
         init() {
             super.init();
             const width = this.getAttribute('width', true);
@@ -204,9 +175,12 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
                 width: width ? this.width : '500px',
                 height: height ? this.height : '300px'
             });
-            const long = this.getAttribute('long', true, 0);
-            const lat = this.getAttribute('lat', true, 0);
-            this.setData({ long, lat });
+            this.data.long = this.getAttribute('long', true, 0);
+            this.data.lat = this.getAttribute('lat', true, 0);
+            this.data.viewMode = this.getAttribute('viewMode', true, 'roadmap');
+            this.data.zoom = this.getAttribute('zoom', true, DEFAULT_ZOOM);
+            this.data.address = this.getAttribute('address', true, '');
+            this.setData(this.data);
         }
         static async create(options, parent) {
             let self = new this(parent, options);
@@ -227,16 +201,55 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
         set lat(value) {
             this.data.lat = value;
         }
+        get viewMode() {
+            var _a;
+            return (_a = this.data.viewMode) !== null && _a !== void 0 ? _a : 'roadmap';
+        }
+        set viewMode(value) {
+            this.data.viewMode = value;
+        }
+        get address() {
+            var _a;
+            return (_a = this.data.address) !== null && _a !== void 0 ? _a : '';
+        }
+        set address(value) {
+            this.data.address = value;
+        }
+        get zoom() {
+            var _a;
+            return (_a = this.data.zoom) !== null && _a !== void 0 ? _a : DEFAULT_ZOOM;
+        }
+        set zoom(value) {
+            this.data.zoom = value;
+        }
         getConfigSchema() {
             return configSchema;
         }
         getData() {
             return this.data;
         }
+        getUrl() {
+            const baseUrl = store_1.getAPIUrl();
+            const params = new URLSearchParams();
+            params.append('key', store_1.getAPIKey());
+            const position = `${this.lat},${this.long}`;
+            if (this.address) {
+                params.append('q', this.address);
+                if (this.lat || this.long)
+                    params.append('center', position);
+            }
+            else {
+                params.append('q', position);
+            }
+            params.append('zoom', this.zoom.toString());
+            params.append('maptype', this.viewMode);
+            return `${baseUrl}?${params.toString()}`;
+        }
         async setData(value) {
             this.oldData = this.data;
             this.data = value;
-            const url = this.embeddedUrl.replace('{lat}', this.data.lat.toString()).replace('{long}', this.data.long.toString());
+            const url = this.getUrl();
+            // this.embeddedUrl.replace('{lat}', this.data.lat.toString()).replace('{long}', this.data.long.toString())
             this.iframeElm.url = url;
         }
         getTag() {
@@ -254,12 +267,27 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
             const propertiesSchema = {
                 type: 'object',
                 properties: {
-                    url: {
-                        type: 'string',
-                        minLength: 1,
-                        required: true,
+                    address: {
+                        type: 'string'
                     },
-                },
+                    latitude: {
+                        type: 'number'
+                    },
+                    longitude: {
+                        type: 'number'
+                    },
+                    zoom: {
+                        type: 'number',
+                        minimum: 0,
+                        maximum: 21,
+                        default: DEFAULT_ZOOM
+                    },
+                    viewMode: {
+                        type: "string",
+                        enum: ['roadmap', 'satellite'],
+                        default: 'roadmap'
+                    }
+                }
             };
             const themeSchema = {
                 type: 'object',
@@ -280,12 +308,27 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
             const propertiesSchema = {
                 type: 'object',
                 properties: {
-                    url: {
-                        type: 'string',
-                        minLength: 1,
-                        required: true,
+                    address: {
+                        type: 'string'
                     },
-                },
+                    latitude: {
+                        type: 'number'
+                    },
+                    longitude: {
+                        type: 'number'
+                    },
+                    zoom: {
+                        type: 'number',
+                        minimum: 0,
+                        maximum: 21,
+                        default: DEFAULT_ZOOM
+                    },
+                    viewMode: {
+                        type: "string",
+                        enum: ['roadmap', 'satellite'],
+                        default: 'roadmap'
+                    }
+                }
             };
             const themeSchema = {
                 type: 'object',
@@ -308,6 +351,8 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
                     command: (builder, userInputData) => {
                         return {
                             execute: () => {
+                                userInputData.lat = userInputData.latitude;
+                                userInputData.long = userInputData.longitude;
                                 if (builder === null || builder === void 0 ? void 0 : builder.setData)
                                     builder.setData(userInputData);
                                 this.setData(userInputData);
