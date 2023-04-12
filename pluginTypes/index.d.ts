@@ -35,6 +35,7 @@ declare module "@scom/scom-map/interface.ts" {
         viewMode?: ViewModeType;
         zoom?: number;
         address?: string;
+        apiKey?: string;
     }
 }
 /// <amd-module name="@scom/scom-map/store.ts" />
@@ -131,6 +132,7 @@ declare module "@scom/scom-map" {
         setData(value: IData): Promise<void>;
         getTag(): any;
         setTag(value: any): Promise<void>;
+        private getPropertiesSchema;
         getEmbedderActions(): {
             name: string;
             icon: string;
