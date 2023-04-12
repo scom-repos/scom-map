@@ -15,6 +15,11 @@
     "@scom/dapp": "*",
     "@scom/scom-map": "*"
   },
+  "wallets": [
+    {
+      "name": "metamask"
+    }
+  ],
   "menus": [
     {
       "caption": "Module 1",

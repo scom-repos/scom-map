@@ -44,4 +44,5 @@ export interface IData {
   viewMode?: ViewModeType;
   zoom?: number;
   address?: string;
+  apiKey?: string;
 }

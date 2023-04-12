@@ -231,7 +231,8 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
         getUrl() {
             const baseUrl = store_1.getAPIUrl();
             const params = new URLSearchParams();
-            params.append('key', store_1.getAPIKey());
+            const apiKey = this.data.apiKey || store_1.getAPIKey() || '';
+            params.append('key', apiKey);
             const position = `${this.lat},${this.long}`;
             if (this.address) {
                 params.append('q', this.address);
@@ -249,7 +250,6 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
             this.oldData = this.data;
             this.data = value;
             const url = this.getUrl();
-            // this.embeddedUrl.replace('{lat}', this.data.lat.toString()).replace('{long}', this.data.long.toString())
             this.iframeElm.url = url;
         }
         getTag() {
@@ -263,18 +263,20 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
                 this.iframeElm.height = this.tag.height;
             }
         }
-        getEmbedderActions() {
+        getPropertiesSchema() {
             const propertiesSchema = {
                 type: 'object',
                 properties: {
                     address: {
                         type: 'string'
                     },
-                    latitude: {
-                        type: 'number'
+                    lat: {
+                        type: 'number',
+                        title: 'Latitude'
                     },
-                    longitude: {
-                        type: 'number'
+                    long: {
+                        type: 'number',
+                        title: 'Longitude'
                     },
                     zoom: {
                         type: 'number',
@@ -286,9 +288,17 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
                         type: "string",
                         enum: ['roadmap', 'satellite'],
                         default: 'roadmap'
+                    },
+                    apiKey: {
+                        type: "string",
+                        title: "API Key"
                     }
                 }
             };
+            return propertiesSchema;
+        }
+        getEmbedderActions() {
+            const propertiesSchema = this.getPropertiesSchema();
             const themeSchema = {
                 type: 'object',
                 properties: {
@@ -305,31 +315,7 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
             return this._getActions(propertiesSchema, themeSchema);
         }
         getActions() {
-            const propertiesSchema = {
-                type: 'object',
-                properties: {
-                    address: {
-                        type: 'string'
-                    },
-                    latitude: {
-                        type: 'number'
-                    },
-                    longitude: {
-                        type: 'number'
-                    },
-                    zoom: {
-                        type: 'number',
-                        minimum: 0,
-                        maximum: 21,
-                        default: DEFAULT_ZOOM
-                    },
-                    viewMode: {
-                        type: "string",
-                        enum: ['roadmap', 'satellite'],
-                        default: 'roadmap'
-                    }
-                }
-            };
+            const propertiesSchema = this.getPropertiesSchema();
             const themeSchema = {
                 type: 'object',
                 properties: {
@@ -351,8 +337,6 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
                     command: (builder, userInputData) => {
                         return {
                             execute: () => {
-                                userInputData.lat = userInputData.latitude;
-                                userInputData.long = userInputData.longitude;
                                 if (builder === null || builder === void 0 ? void 0 : builder.setData)
                                     builder.setData(userInputData);
                                 this.setData(userInputData);
