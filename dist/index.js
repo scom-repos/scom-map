@@ -55,77 +55,6 @@ define("@scom/scom-map/store.ts", ["require", "exports"], function (require, exp
     };
     exports.getAPIUrl = getAPIUrl;
 });
-define("@scom/scom-map/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    const Theme = components_1.Styles.Theme.ThemeVars;
-    components_1.Styles.cssRule('#pnlImage', {
-        $nest: {
-            '.custom-img img': {
-                objectFit: 'cover',
-                objectPosition: 'center',
-                width: '100%',
-                height: '100%',
-                maxWidth: 'none',
-                maxHeight: 'none'
-            },
-            '#imgLink span': {
-                display: 'block'
-            },
-            '#edtLink input': {
-                border: `1px solid ${Theme.divider}`
-            },
-            ".angle": {
-                zIndex: '200',
-                position: 'absolute',
-                width: '30px',
-                height: '30px',
-                background: 'black',
-                clipPath: "polygon(0 0, 0 100%, 20% 100%, 20% 20%, 100% 20%, 100% 0)"
-            },
-            ".transform": {
-                transformOrigin: "left top"
-            },
-            ".angle-nw:hover": {
-                cursor: 'nw-resize',
-                background: 'blue'
-            },
-            ".angle-ne:hover": {
-                cursor: 'ne-resize',
-                background: 'blue'
-            },
-            ".angle-sw:hover": {
-                cursor: 'sw-resize',
-                background: 'blue'
-            },
-            ".angle-se:hover": {
-                cursor: 'se-resize',
-                background: 'blue'
-            },
-            ".angle-ne": {
-                transform: "rotate(90deg)"
-            },
-            ".angle-se": {
-                transform: "rotate(180deg)"
-            },
-            ".angle-sw": {
-                transform: "rotate(270deg)"
-            },
-            ".canvas": {
-                zIndex: '180',
-                position: 'absolute',
-                top: '0px',
-                left: '0px'
-            },
-            ".canvas-line": {
-                zIndex: '190',
-                position: 'absolute',
-                top: '0px',
-                left: '0px'
-            }
-        }
-    });
-});
 define("@scom/scom-map/scconfig.json.ts", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -141,6 +70,18 @@ define("@scom/scom-map/scconfig.json.ts", ["require", "exports"], function (requ
         "apiUrl": "https://www.google.com/maps/embed/v1/place",
         "embeddedUrl": "https://maps.google.com/maps?hl=en&q={lat},{long}&t=h&z=14&ie=UTF8&iwloc=B&output=embed"
     };
+});
+define("@scom/scom-map/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    const Theme = components_1.Styles.Theme.ThemeVars;
+    components_1.Styles.cssRule('i-scom-map', {
+        $nest: {
+            '#pnlModule': {
+                height: '100%'
+            }
+        }
+    });
 });
 define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/scom-map/store.ts", "@scom/scom-map/scconfig.json.ts", "@scom/scom-map/index.css.ts"], function (require, exports, components_2, store_1, scconfig_json_1) {
     "use strict";
@@ -180,6 +121,8 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
             this.data.viewMode = this.getAttribute('viewMode', true, 'roadmap');
             this.data.zoom = this.getAttribute('zoom', true, DEFAULT_ZOOM);
             this.data.address = this.getAttribute('address', true, '');
+            this.data.showHeader = this.getAttribute('showHeader', true, true);
+            this.data.showFooter = this.getAttribute('showFooter', true, true);
             this.setData(this.data);
         }
         static async create(options, parent) {
@@ -222,6 +165,24 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
         set zoom(value) {
             this.data.zoom = value;
         }
+        get showFooter() {
+            var _a;
+            return (_a = this.data.showFooter) !== null && _a !== void 0 ? _a : true;
+        }
+        set showFooter(value) {
+            this.data.showFooter = value;
+            if (this.dappContainer)
+                this.dappContainer.showFooter = this.showFooter;
+        }
+        get showHeader() {
+            var _a;
+            return (_a = this.data.showHeader) !== null && _a !== void 0 ? _a : true;
+        }
+        set showHeader(value) {
+            this.data.showHeader = value;
+            if (this.dappContainer)
+                this.dappContainer.showHeader = this.showHeader;
+        }
         getConfigSchema() {
             return configSchema;
         }
@@ -251,16 +212,19 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
             this.data = value;
             const url = this.getUrl();
             this.iframeElm.url = url;
+            if (this.dappContainer) {
+                this.dappContainer.showHeader = this.showHeader;
+                this.dappContainer.showFooter = this.showFooter;
+            }
         }
         getTag() {
             return this.tag;
         }
         async setTag(value) {
             this.tag = value;
-            if (this.iframeElm) {
-                this.iframeElm.display = "block";
-                this.iframeElm.width = this.tag.width;
-                this.iframeElm.height = this.tag.height;
+            if (this.dappContainer) {
+                this.dappContainer.width = this.tag.width;
+                this.dappContainer.height = this.tag.height;
             }
         }
         getPropertiesSchema() {
@@ -355,8 +319,8 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
             return actions;
         }
         render() {
-            return (this.$render("i-panel", null,
-                this.$render("i-iframe", { id: "iframeElm" })));
+            return (this.$render("i-scom-dapp-container", { id: "dappContainer", showWalletNetwork: false, display: "block" },
+                this.$render("i-iframe", { id: "iframeElm", width: "100%", height: "100%", display: "flex" })));
         }
     };
     ScomMap = __decorate([

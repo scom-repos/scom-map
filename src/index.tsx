@@ -8,9 +8,12 @@ import {
   Iframe
 } from '@ijstech/components'
 import { IData, PageBlock, ViewModeType } from './interface'
-import { getAPIKey, getAPIUrl, getEmbeddedUrl, setDataFromSCConfig } from './store'
-import './index.css'
+import { getAPIKey, getAPIUrl, setDataFromSCConfig } from './store'
+import {} from '@ijstech/eth-contract'
+import {} from '@ijstech/eth-wallet'
+import ScomDappContainer from '@scom/scom-dapp-container'
 import scconfig from './scconfig.json'
+import './index.css'
 
 const DEFAULT_ZOOM = 14;
 const configSchema = {
@@ -32,6 +35,8 @@ interface ScomMapElement extends ControlElement {
   viewMode?: ViewModeType;
   zoom?: number;
   address?: string;
+  showHeader?: boolean;
+  showFooter?: boolean;
 }
 
 declare global {
@@ -48,6 +53,7 @@ export default class ScomMap extends Module implements PageBlock {
   private data: IData = {}
   private oldData: IData = {}
   private iframeElm: Iframe;
+  private dappContainer: ScomDappContainer
 
   tag: any
 
@@ -81,6 +87,8 @@ export default class ScomMap extends Module implements PageBlock {
     this.data.viewMode = this.getAttribute('viewMode', true, 'roadmap')
     this.data.zoom = this.getAttribute('zoom', true, DEFAULT_ZOOM)
     this.data.address = this.getAttribute('address', true, '')
+    this.data.showHeader = this.getAttribute('showHeader', true, true)
+    this.data.showFooter = this.getAttribute('showFooter', true, true)
     this.setData(this.data);
   }
 
@@ -125,6 +133,22 @@ export default class ScomMap extends Module implements PageBlock {
     this.data.zoom = value;
   }
 
+  get showFooter() {
+    return this.data.showFooter ?? true
+  }
+  set showFooter(value: boolean) {
+    this.data.showFooter = value
+    if (this.dappContainer) this.dappContainer.showFooter = this.showFooter;
+  }
+
+  get showHeader() {
+    return this.data.showHeader ?? true
+  }
+  set showHeader(value: boolean) {
+    this.data.showHeader = value
+    if (this.dappContainer) this.dappContainer.showHeader = this.showHeader;
+  }
+
   getConfigSchema() {
     return configSchema
   }
@@ -156,6 +180,10 @@ export default class ScomMap extends Module implements PageBlock {
     this.data = value
     const url = this.getUrl()
     this.iframeElm.url = url
+    if (this.dappContainer) {
+      this.dappContainer.showHeader = this.showHeader;
+      this.dappContainer.showFooter = this.showFooter;
+    }
   }
 
   getTag() {
@@ -163,11 +191,10 @@ export default class ScomMap extends Module implements PageBlock {
   }
 
   async setTag(value: any) {
-    this.tag = value
-    if (this.iframeElm) {
-      this.iframeElm.display = "block";
-      this.iframeElm.width = this.tag.width
-      this.iframeElm.height = this.tag.height
+    this.tag = value;
+    if (this.dappContainer) {
+      this.dappContainer.width = this.tag.width;
+      this.dappContainer.height = this.tag.height;
     }
   }
 
@@ -270,9 +297,9 @@ export default class ScomMap extends Module implements PageBlock {
 
   render() {
     return (
-      <i-panel>
-        <i-iframe id="iframeElm"></i-iframe>
-      </i-panel>
+      <i-scom-dapp-container id="dappContainer" showWalletNetwork={false} display="block">
+        <i-iframe id="iframeElm" width="100%" height="100%" display="flex"></i-iframe>
+      </i-scom-dapp-container>
     )
   }
 }

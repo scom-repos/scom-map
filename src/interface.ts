@@ -45,4 +45,6 @@ export interface IData {
   zoom?: number;
   address?: string;
   apiKey?: string;
+  showHeader?: boolean;
+  showFooter?: boolean;
 }

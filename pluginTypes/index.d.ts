@@ -36,6 +36,8 @@ declare module "@scom/scom-map/interface.ts" {
         zoom?: number;
         address?: string;
         apiKey?: string;
+        showHeader?: boolean;
+        showFooter?: boolean;
     }
 }
 /// <amd-module name="@scom/scom-map/store.ts" />
@@ -53,8 +55,6 @@ declare module "@scom/scom-map/store.ts" {
     export const setAPIUrl: (value: string) => void;
     export const getAPIUrl: () => string;
 }
-/// <amd-module name="@scom/scom-map/index.css.ts" />
-declare module "@scom/scom-map/index.css.ts" { }
 /// <amd-module name="@scom/scom-map/scconfig.json.ts" />
 declare module "@scom/scom-map/scconfig.json.ts" {
     const _default: {
@@ -70,6 +70,8 @@ declare module "@scom/scom-map/scconfig.json.ts" {
     };
     export default _default;
 }
+/// <amd-module name="@scom/scom-map/index.css.ts" />
+declare module "@scom/scom-map/index.css.ts" { }
 /// <amd-module name="@scom/scom-map" />
 declare module "@scom/scom-map" {
     import { Module, IDataSchema, Container, ControlElement } from '@ijstech/components';
@@ -81,6 +83,8 @@ declare module "@scom/scom-map" {
         viewMode?: ViewModeType;
         zoom?: number;
         address?: string;
+        showHeader?: boolean;
+        showFooter?: boolean;
     }
     global {
         namespace JSX {
@@ -93,6 +97,7 @@ declare module "@scom/scom-map" {
         private data;
         private oldData;
         private iframeElm;
+        private dappContainer;
         tag: any;
         readonly onConfirm: () => Promise<void>;
         readonly onDiscard: () => Promise<void>;
@@ -115,6 +120,10 @@ declare module "@scom/scom-map" {
         set address(value: string);
         get zoom(): number;
         set zoom(value: number);
+        get showFooter(): boolean;
+        set showFooter(value: boolean);
+        get showHeader(): boolean;
+        set showHeader(value: boolean);
         getConfigSchema(): {
             type: string;
             required: any[];
