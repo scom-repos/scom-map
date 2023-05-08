@@ -181,16 +181,18 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
                     target: 'Builders',
                     getActions: this.getActions.bind(this),
                     getData: this.getData.bind(this),
+                    setData: this.setData.bind(this),
                     getTag: this.getTag.bind(this),
-                    setData: this.setData.bind(this)
+                    setTag: this.setTag.bind(this)
                 },
                 {
                     name: 'Emdedder Configurator',
                     target: 'Embedders',
                     getActions: this.getEmbedderActions.bind(this),
                     getData: this.getData.bind(this),
+                    setData: this.setData.bind(this),
                     getTag: this.getTag.bind(this),
-                    setData: this.setData.bind(this)
+                    setTag: this.setTag.bind(this)
                 }
             ];
         }

@@ -129,8 +129,9 @@ declare module "@scom/scom-map" {
             target: string;
             getActions: any;
             getData: any;
-            getTag: any;
             setData: any;
+            getTag: any;
+            setTag: any;
         }[];
         private getData;
         private getUrl;
