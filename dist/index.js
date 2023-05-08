@@ -87,18 +87,6 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const DEFAULT_ZOOM = 14;
-    const configSchema = {
-        type: 'object',
-        required: [],
-        properties: {
-            width: {
-                type: 'string',
-            },
-            height: {
-                type: 'string',
-            },
-        },
-    };
     let ScomMap = class ScomMap extends components_2.Module {
         constructor(parent, options) {
             super(parent, options);
@@ -183,8 +171,28 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
             if (this.dappContainer)
                 this.dappContainer.showHeader = this.showHeader;
         }
-        getConfigSchema() {
-            return configSchema;
+        // getConfigSchema() {
+        //   return configSchema
+        // }
+        getConfigurators() {
+            return [
+                {
+                    name: 'Builder Configurator',
+                    target: 'Builders',
+                    getActions: this.getActions.bind(this),
+                    getData: this.getData.bind(this),
+                    getTag: this.getTag.bind(this),
+                    setData: this.setData.bind(this)
+                },
+                {
+                    name: 'Emdedder Configurator',
+                    target: 'Embedders',
+                    getActions: this.getEmbedderActions.bind(this),
+                    getData: this.getData.bind(this),
+                    getTag: this.getTag.bind(this),
+                    setData: this.setData.bind(this)
+                }
+            ];
         }
         getData() {
             return this.data;

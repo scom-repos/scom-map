@@ -16,18 +16,18 @@ import scconfig from './scconfig.json'
 import './index.css'
 
 const DEFAULT_ZOOM = 14;
-const configSchema = {
-  type: 'object',
-  required: [],
-  properties: {
-    width: {
-      type: 'string',
-    },
-    height: {
-      type: 'string',
-    },
-  },
-}
+// const configSchema = {
+//   type: 'object',
+//   required: [],
+//   properties: {
+//     width: {
+//       type: 'string',
+//     },
+//     height: {
+//       type: 'string',
+//     },
+//   },
+// }
 
 interface ScomMapElement extends ControlElement {
   long?: number;
@@ -49,7 +49,7 @@ declare global {
 
 @customModule
 @customElements('i-scom-map')
-export default class ScomMap extends Module implements PageBlock {
+export default class ScomMap extends Module {
   private data: IData = {}
   private oldData: IData = {}
   private iframeElm: Iframe;
@@ -149,11 +149,32 @@ export default class ScomMap extends Module implements PageBlock {
     if (this.dappContainer) this.dappContainer.showHeader = this.showHeader;
   }
 
-  getConfigSchema() {
-    return configSchema
+  // getConfigSchema() {
+  //   return configSchema
+  // }
+
+  getConfigurators() {
+    return [
+      {
+        name: 'Builder Configurator',
+        target: 'Builders',
+        getActions: this.getActions.bind(this),
+        getData: this.getData.bind(this),
+        getTag: this.getTag.bind(this),
+        setData: this.setData.bind(this)
+      },
+      {
+        name: 'Emdedder Configurator',
+        target: 'Embedders',
+        getActions: this.getEmbedderActions.bind(this),
+        getData: this.getData.bind(this),
+        getTag: this.getTag.bind(this),
+        setData: this.setData.bind(this)
+      }
+    ]
   }
 
-  getData() {
+  private getData() {
     return this.data
   }
 
@@ -175,7 +196,7 @@ export default class ScomMap extends Module implements PageBlock {
     return `${baseUrl}?${params.toString()}`;
   }
 
-  async setData(value: IData) {
+  private async setData(value: IData) {
     this.oldData = this.data
     this.data = value
     const url = this.getUrl()
@@ -186,11 +207,11 @@ export default class ScomMap extends Module implements PageBlock {
     }
   }
 
-  getTag() {
+  private getTag() {
     return this.tag
   }
 
-  async setTag(value: any) {
+  private async setTag(value: any) {
     this.tag = value;
     if (this.dappContainer) {
       this.dappContainer.width = this.tag.width;
@@ -233,7 +254,7 @@ export default class ScomMap extends Module implements PageBlock {
     return propertiesSchema;
   }
 
-  getEmbedderActions() {
+  private getEmbedderActions() {
     const propertiesSchema = this.getPropertiesSchema() as IDataSchema
 
     const themeSchema: IDataSchema = {
@@ -253,7 +274,7 @@ export default class ScomMap extends Module implements PageBlock {
     return this._getActions(propertiesSchema, themeSchema)
   }
 
-  getActions() {
+  private getActions() {
     const propertiesSchema = this.getPropertiesSchema() as IDataSchema
 
     const themeSchema: IDataSchema = {
@@ -271,7 +292,7 @@ export default class ScomMap extends Module implements PageBlock {
     return this._getActions(propertiesSchema, themeSchema)
   }
 
-  _getActions(settingSchema: IDataSchema, themeSchema: IDataSchema) {
+  private _getActions(settingSchema: IDataSchema, themeSchema: IDataSchema) {
     const actions = [
       {
         name: 'Settings',

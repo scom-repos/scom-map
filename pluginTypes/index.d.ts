@@ -74,8 +74,8 @@ declare module "@scom/scom-map/scconfig.json.ts" {
 declare module "@scom/scom-map/index.css.ts" { }
 /// <amd-module name="@scom/scom-map" />
 declare module "@scom/scom-map" {
-    import { Module, IDataSchema, Container, ControlElement } from '@ijstech/components';
-    import { IData, PageBlock, ViewModeType } from "@scom/scom-map/interface.ts";
+    import { Module, Container, ControlElement } from '@ijstech/components';
+    import { ViewModeType } from "@scom/scom-map/interface.ts";
     import "@scom/scom-map/index.css.ts";
     interface ScomMapElement extends ControlElement {
         long?: number;
@@ -93,7 +93,7 @@ declare module "@scom/scom-map" {
             }
         }
     }
-    export default class ScomMap extends Module implements PageBlock {
+    export default class ScomMap extends Module {
         private data;
         private oldData;
         private iframeElm;
@@ -124,54 +124,23 @@ declare module "@scom/scom-map" {
         set showFooter(value: boolean);
         get showHeader(): boolean;
         set showHeader(value: boolean);
-        getConfigSchema(): {
-            type: string;
-            required: any[];
-            properties: {
-                width: {
-                    type: string;
-                };
-                height: {
-                    type: string;
-                };
-            };
-        };
-        getData(): IData;
+        getConfigurators(): {
+            name: string;
+            target: string;
+            getActions: any;
+            getData: any;
+            getTag: any;
+            setData: any;
+        }[];
+        private getData;
         private getUrl;
-        setData(value: IData): Promise<void>;
-        getTag(): any;
-        setTag(value: any): Promise<void>;
+        private setData;
+        private getTag;
+        private setTag;
         private getPropertiesSchema;
-        getEmbedderActions(): {
-            name: string;
-            icon: string;
-            command: (builder: any, userInputData: any) => {
-                execute: () => void;
-                undo: () => void;
-                redo: () => void;
-            };
-            userInputDataSchema: IDataSchema;
-        }[];
-        getActions(): {
-            name: string;
-            icon: string;
-            command: (builder: any, userInputData: any) => {
-                execute: () => void;
-                undo: () => void;
-                redo: () => void;
-            };
-            userInputDataSchema: IDataSchema;
-        }[];
-        _getActions(settingSchema: IDataSchema, themeSchema: IDataSchema): {
-            name: string;
-            icon: string;
-            command: (builder: any, userInputData: any) => {
-                execute: () => void;
-                undo: () => void;
-                redo: () => void;
-            };
-            userInputDataSchema: IDataSchema;
-        }[];
+        private getEmbedderActions;
+        private getActions;
+        private _getActions;
         render(): any;
     }
 }
