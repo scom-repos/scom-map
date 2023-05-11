@@ -7,27 +7,15 @@ import {
   customElements,
   Iframe
 } from '@ijstech/components'
-import { IData, PageBlock, ViewModeType } from './interface'
+import { IData, ViewModeType } from './interface'
 import { getAPIKey, getAPIUrl, setDataFromSCConfig } from './store'
 import {} from '@ijstech/eth-contract'
 import {} from '@ijstech/eth-wallet'
 import ScomDappContainer from '@scom/scom-dapp-container'
-import scconfig from './scconfig.json'
+import dataJson from './data.json'
 import './index.css'
 
 const DEFAULT_ZOOM = 14;
-// const configSchema = {
-//   type: 'object',
-//   required: [],
-//   properties: {
-//     width: {
-//       type: 'string',
-//     },
-//     height: {
-//       type: 'string',
-//     },
-//   },
-// }
 
 interface ScomMapElement extends ControlElement {
   long?: number;
@@ -51,7 +39,6 @@ declare global {
 @customElements('i-scom-map')
 export default class ScomMap extends Module {
   private data: IData = {}
-  private oldData: IData = {}
   private iframeElm: Iframe;
   private dappContainer: ScomDappContainer
 
@@ -69,8 +56,8 @@ export default class ScomMap extends Module {
 
   constructor(parent?: Container, options?: any) {
     super(parent, options)
-    if (scconfig) {
-      setDataFromSCConfig(scconfig)
+    if (dataJson) {
+      setDataFromSCConfig(dataJson)
     }
   }
 
@@ -87,8 +74,8 @@ export default class ScomMap extends Module {
     this.data.viewMode = this.getAttribute('viewMode', true, 'roadmap')
     this.data.zoom = this.getAttribute('zoom', true, DEFAULT_ZOOM)
     this.data.address = this.getAttribute('address', true, '')
-    this.data.showHeader = this.getAttribute('showHeader', true, true)
-    this.data.showFooter = this.getAttribute('showFooter', true, true)
+    this.data.showHeader = this.getAttribute('showHeader', true, false)
+    this.data.showFooter = this.getAttribute('showFooter', true, false)
     this.setData(this.data);
   }
 
@@ -134,7 +121,7 @@ export default class ScomMap extends Module {
   }
 
   get showFooter() {
-    return this.data.showFooter ?? true
+    return this.data.showFooter ?? false
   }
   set showFooter(value: boolean) {
     this.data.showFooter = value
@@ -142,32 +129,39 @@ export default class ScomMap extends Module {
   }
 
   get showHeader() {
-    return this.data.showHeader ?? true
+    return this.data.showHeader ?? false
   }
   set showHeader(value: boolean) {
     this.data.showHeader = value
     if (this.dappContainer) this.dappContainer.showHeader = this.showHeader;
   }
 
-  // getConfigSchema() {
-  //   return configSchema
-  // }
-
   getConfigurators() {
     return [
       {
         name: 'Builder Configurator',
         target: 'Builders',
-        getActions: this.getActions.bind(this),
+        getActions: () => {
+          const propertiesSchema = this.getPropertiesSchema();
+          const themeSchema = this.getThemeSchema();
+          return this._getActions(propertiesSchema, themeSchema);
+        },
         getData: this.getData.bind(this),
-        setData: this.setData.bind(this),
+        setData: async (data: IData) => {
+          const defaultData = dataJson.defaultBuilderData as any;
+          await this.setData({...defaultData, ...data})
+        },
         getTag: this.getTag.bind(this),
         setTag: this.setTag.bind(this)
       },
       {
         name: 'Emdedder Configurator',
         target: 'Embedders',
-        getActions: this.getEmbedderActions.bind(this),
+        getActions: () => {
+          const propertiesSchema = this.getPropertiesSchema();
+          const themeSchema = this.getThemeSchema(true);
+          return this._getActions(propertiesSchema, themeSchema);
+        },
         getData: this.getData.bind(this),
         setData: this.setData.bind(this),
         getTag: this.getTag.bind(this),
@@ -199,7 +193,6 @@ export default class ScomMap extends Module {
   }
 
   private async setData(value: IData) {
-    this.oldData = this.data
     this.data = value
     const url = this.getUrl()
     this.iframeElm.url = url
@@ -256,42 +249,22 @@ export default class ScomMap extends Module {
     return propertiesSchema;
   }
 
-  private getEmbedderActions() {
-    const propertiesSchema = this.getPropertiesSchema() as IDataSchema
-
+  private getThemeSchema(readOnly = false) {
     const themeSchema: IDataSchema = {
       type: 'object',
       properties: {
         width: {
           type: 'string',
-          readOnly: true,
+          readOnly
         },
         height: {
           type: 'string',
-          readOnly: true,
+          readOnly
         },
       },
     }
 
-    return this._getActions(propertiesSchema, themeSchema)
-  }
-
-  private getActions() {
-    const propertiesSchema = this.getPropertiesSchema() as IDataSchema
-
-    const themeSchema: IDataSchema = {
-      type: 'object',
-      properties: {
-        width: {
-          type: 'string',
-        },
-        height: {
-          type: 'string',
-        },
-      },
-    }
-
-    return this._getActions(propertiesSchema, themeSchema)
+    return themeSchema;
   }
 
   private _getActions(settingSchema: IDataSchema, themeSchema: IDataSchema) {
@@ -300,14 +273,23 @@ export default class ScomMap extends Module {
         name: 'Settings',
         icon: 'cog',
         command: (builder: any, userInputData: any) => {
+          let oldData = {};
           return {
             execute: () => {
-              if (builder?.setData) builder.setData(userInputData)
-              this.setData(userInputData)
+              oldData = {...this.data};
+              if (userInputData?.long !== undefined) this.data.long = userInputData.long;
+              if (userInputData?.lat !== undefined) this.data.lat = userInputData.lat;
+              if (userInputData?.viewMode !== undefined) this.data.viewMode = userInputData.viewMode;
+              if (userInputData?.zoom !== undefined) this.data.zoom = userInputData.zoom;
+              if (userInputData?.address !== undefined) this.data.address = userInputData.address;
+              if (userInputData?.apiKey !== undefined) this.data.apiKey = userInputData.apiKey;
+              this.iframeElm.url = this.getUrl();
+              if (builder?.setData) builder.setData(this.data);
             },
             undo: () => {
-              if (builder?.setData) builder.setData(this.oldData)
-              this.setData(this.oldData)
+              this.data = {...oldData};
+              this.iframeElm.url = this.getUrl();
+              if (builder?.setData) builder.setData(this.data);
             },
             redo: () => {},
           }

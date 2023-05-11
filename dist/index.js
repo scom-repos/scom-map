@@ -55,20 +55,17 @@ define("@scom/scom-map/store.ts", ["require", "exports"], function (require, exp
     };
     exports.getAPIUrl = getAPIUrl;
 });
-define("@scom/scom-map/scconfig.json.ts", ["require", "exports"], function (require, exports) {
+define("@scom/scom-map/data.json.ts", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    ///<amd-module name='@scom/scom-map/scconfig.json.ts'/> 
+    ///<amd-module name='@scom/scom-map/data.json.ts'/> 
     exports.default = {
-        "name": "@scom-map/main",
-        "version": "0.1.0",
-        "env": "",
-        "moduleDir": "src",
-        "main": "@scom-map/main",
-        "modules": {},
-        "apiKey": "",
+        "apiKey": "AIzaSyDc7PnOq3Hxzq6dxeUVaY8WGLHIePl0swY",
         "apiUrl": "https://www.google.com/maps/embed/v1/place",
-        "embeddedUrl": "https://maps.google.com/maps?hl=en&q={lat},{long}&t=h&z=14&ie=UTF8&iwloc=B&output=embed"
+        "embeddedUrl": "https://maps.google.com/maps?hl=en&q={lat},{long}&t=h&z=14&ie=UTF8&iwloc=B&output=embed",
+        "defaultBuilderData": {
+            zoom: 15
+        }
     };
 });
 define("@scom/scom-map/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_1) {
@@ -83,7 +80,7 @@ define("@scom/scom-map/index.css.ts", ["require", "exports", "@ijstech/component
         }
     });
 });
-define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/scom-map/store.ts", "@scom/scom-map/scconfig.json.ts", "@scom/scom-map/index.css.ts"], function (require, exports, components_2, store_1, scconfig_json_1) {
+define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/scom-map/store.ts", "@scom/scom-map/data.json.ts", "@scom/scom-map/index.css.ts"], function (require, exports, components_2, store_1, data_json_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const DEFAULT_ZOOM = 14;
@@ -91,9 +88,8 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
         constructor(parent, options) {
             super(parent, options);
             this.data = {};
-            this.oldData = {};
-            if (scconfig_json_1.default) {
-                store_1.setDataFromSCConfig(scconfig_json_1.default);
+            if (data_json_1.default) {
+                store_1.setDataFromSCConfig(data_json_1.default);
             }
         }
         init() {
@@ -109,8 +105,8 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
             this.data.viewMode = this.getAttribute('viewMode', true, 'roadmap');
             this.data.zoom = this.getAttribute('zoom', true, DEFAULT_ZOOM);
             this.data.address = this.getAttribute('address', true, '');
-            this.data.showHeader = this.getAttribute('showHeader', true, true);
-            this.data.showFooter = this.getAttribute('showFooter', true, true);
+            this.data.showHeader = this.getAttribute('showHeader', true, false);
+            this.data.showFooter = this.getAttribute('showFooter', true, false);
             this.setData(this.data);
         }
         static async create(options, parent) {
@@ -155,7 +151,7 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
         }
         get showFooter() {
             var _a;
-            return (_a = this.data.showFooter) !== null && _a !== void 0 ? _a : true;
+            return (_a = this.data.showFooter) !== null && _a !== void 0 ? _a : false;
         }
         set showFooter(value) {
             this.data.showFooter = value;
@@ -164,31 +160,39 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
         }
         get showHeader() {
             var _a;
-            return (_a = this.data.showHeader) !== null && _a !== void 0 ? _a : true;
+            return (_a = this.data.showHeader) !== null && _a !== void 0 ? _a : false;
         }
         set showHeader(value) {
             this.data.showHeader = value;
             if (this.dappContainer)
                 this.dappContainer.showHeader = this.showHeader;
         }
-        // getConfigSchema() {
-        //   return configSchema
-        // }
         getConfigurators() {
             return [
                 {
                     name: 'Builder Configurator',
                     target: 'Builders',
-                    getActions: this.getActions.bind(this),
+                    getActions: () => {
+                        const propertiesSchema = this.getPropertiesSchema();
+                        const themeSchema = this.getThemeSchema();
+                        return this._getActions(propertiesSchema, themeSchema);
+                    },
                     getData: this.getData.bind(this),
-                    setData: this.setData.bind(this),
+                    setData: async (data) => {
+                        const defaultData = data_json_1.default.defaultBuilderData;
+                        await this.setData(Object.assign(Object.assign({}, defaultData), data));
+                    },
                     getTag: this.getTag.bind(this),
                     setTag: this.setTag.bind(this)
                 },
                 {
                     name: 'Emdedder Configurator',
                     target: 'Embedders',
-                    getActions: this.getEmbedderActions.bind(this),
+                    getActions: () => {
+                        const propertiesSchema = this.getPropertiesSchema();
+                        const themeSchema = this.getThemeSchema(true);
+                        return this._getActions(propertiesSchema, themeSchema);
+                    },
                     getData: this.getData.bind(this),
                     setData: this.setData.bind(this),
                     getTag: this.getTag.bind(this),
@@ -218,7 +222,6 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
             return `${baseUrl}?${params.toString()}`;
         }
         async setData(value) {
-            this.oldData = this.data;
             this.data = value;
             const url = this.getUrl();
             this.iframeElm.url = url;
@@ -271,37 +274,21 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
             };
             return propertiesSchema;
         }
-        getEmbedderActions() {
-            const propertiesSchema = this.getPropertiesSchema();
+        getThemeSchema(readOnly = false) {
             const themeSchema = {
                 type: 'object',
                 properties: {
                     width: {
                         type: 'string',
-                        readOnly: true,
+                        readOnly
                     },
                     height: {
                         type: 'string',
-                        readOnly: true,
+                        readOnly
                     },
                 },
             };
-            return this._getActions(propertiesSchema, themeSchema);
-        }
-        getActions() {
-            const propertiesSchema = this.getPropertiesSchema();
-            const themeSchema = {
-                type: 'object',
-                properties: {
-                    width: {
-                        type: 'string',
-                    },
-                    height: {
-                        type: 'string',
-                    },
-                },
-            };
-            return this._getActions(propertiesSchema, themeSchema);
+            return themeSchema;
         }
         _getActions(settingSchema, themeSchema) {
             const actions = [
@@ -309,16 +296,31 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
                     name: 'Settings',
                     icon: 'cog',
                     command: (builder, userInputData) => {
+                        let oldData = {};
                         return {
                             execute: () => {
+                                oldData = Object.assign({}, this.data);
+                                if ((userInputData === null || userInputData === void 0 ? void 0 : userInputData.long) !== undefined)
+                                    this.data.long = userInputData.long;
+                                if ((userInputData === null || userInputData === void 0 ? void 0 : userInputData.lat) !== undefined)
+                                    this.data.lat = userInputData.lat;
+                                if ((userInputData === null || userInputData === void 0 ? void 0 : userInputData.viewMode) !== undefined)
+                                    this.data.viewMode = userInputData.viewMode;
+                                if ((userInputData === null || userInputData === void 0 ? void 0 : userInputData.zoom) !== undefined)
+                                    this.data.zoom = userInputData.zoom;
+                                if ((userInputData === null || userInputData === void 0 ? void 0 : userInputData.address) !== undefined)
+                                    this.data.address = userInputData.address;
+                                if ((userInputData === null || userInputData === void 0 ? void 0 : userInputData.apiKey) !== undefined)
+                                    this.data.apiKey = userInputData.apiKey;
+                                this.iframeElm.url = this.getUrl();
                                 if (builder === null || builder === void 0 ? void 0 : builder.setData)
-                                    builder.setData(userInputData);
-                                this.setData(userInputData);
+                                    builder.setData(this.data);
                             },
                             undo: () => {
+                                this.data = Object.assign({}, oldData);
+                                this.iframeElm.url = this.getUrl();
                                 if (builder === null || builder === void 0 ? void 0 : builder.setData)
-                                    builder.setData(this.oldData);
-                                this.setData(this.oldData);
+                                    builder.setData(this.data);
                             },
                             redo: () => { },
                         };

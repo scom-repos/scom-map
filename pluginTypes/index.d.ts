@@ -55,18 +55,15 @@ declare module "@scom/scom-map/store.ts" {
     export const setAPIUrl: (value: string) => void;
     export const getAPIUrl: () => string;
 }
-/// <amd-module name="@scom/scom-map/scconfig.json.ts" />
-declare module "@scom/scom-map/scconfig.json.ts" {
+/// <amd-module name="@scom/scom-map/data.json.ts" />
+declare module "@scom/scom-map/data.json.ts" {
     const _default: {
-        name: string;
-        version: string;
-        env: string;
-        moduleDir: string;
-        main: string;
-        modules: {};
         apiKey: string;
         apiUrl: string;
         embeddedUrl: string;
+        defaultBuilderData: {
+            zoom: number;
+        };
     };
     export default _default;
 }
@@ -74,7 +71,7 @@ declare module "@scom/scom-map/scconfig.json.ts" {
 declare module "@scom/scom-map/index.css.ts" { }
 /// <amd-module name="@scom/scom-map" />
 declare module "@scom/scom-map" {
-    import { Module, Container, ControlElement } from '@ijstech/components';
+    import { Module, IDataSchema, Container, ControlElement } from '@ijstech/components';
     import { ViewModeType } from "@scom/scom-map/interface.ts";
     import "@scom/scom-map/index.css.ts";
     interface ScomMapElement extends ControlElement {
@@ -95,7 +92,6 @@ declare module "@scom/scom-map" {
     }
     export default class ScomMap extends Module {
         private data;
-        private oldData;
         private iframeElm;
         private dappContainer;
         tag: any;
@@ -127,7 +123,16 @@ declare module "@scom/scom-map" {
         getConfigurators(): {
             name: string;
             target: string;
-            getActions: any;
+            getActions: () => {
+                name: string;
+                icon: string;
+                command: (builder: any, userInputData: any) => {
+                    execute: () => void;
+                    undo: () => void;
+                    redo: () => void;
+                };
+                userInputDataSchema: IDataSchema;
+            }[];
             getData: any;
             setData: any;
             getTag: any;
@@ -139,8 +144,7 @@ declare module "@scom/scom-map" {
         private getTag;
         private setTag;
         private getPropertiesSchema;
-        private getEmbedderActions;
-        private getActions;
+        private getThemeSchema;
         private _getActions;
         render(): any;
     }
