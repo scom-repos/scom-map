@@ -277,12 +277,19 @@ export default class ScomMap extends Module {
           return {
             execute: () => {
               oldData = {...this.data};
-              if (builder?.setData) builder.setData(userInputData)
-              this.setData(userInputData)
+              if (userInputData?.long !== undefined) this.data.long = userInputData.long;
+              if (userInputData?.lat !== undefined) this.data.lat = userInputData.lat;
+              if (userInputData?.viewMode !== undefined) this.data.viewMode = userInputData.viewMode;
+              if (userInputData?.zoom !== undefined) this.data.zoom = userInputData.zoom;
+              if (userInputData?.address !== undefined) this.data.address = userInputData.address;
+              if (userInputData?.apiKey !== undefined) this.data.apiKey = userInputData.apiKey;
+              this.iframeElm.url = this.getUrl();
+              if (builder?.setData) builder.setData(this.data);
             },
             undo: () => {
-              if (builder?.setData) builder.setData(oldData)
-              this.setData(oldData)
+              this.data = {...oldData};
+              this.iframeElm.url = this.getUrl();
+              if (builder?.setData) builder.setData(this.data);
             },
             redo: () => {},
           }

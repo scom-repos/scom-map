@@ -300,14 +300,27 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
                         return {
                             execute: () => {
                                 oldData = Object.assign({}, this.data);
+                                if ((userInputData === null || userInputData === void 0 ? void 0 : userInputData.long) !== undefined)
+                                    this.data.long = userInputData.long;
+                                if ((userInputData === null || userInputData === void 0 ? void 0 : userInputData.lat) !== undefined)
+                                    this.data.lat = userInputData.lat;
+                                if ((userInputData === null || userInputData === void 0 ? void 0 : userInputData.viewMode) !== undefined)
+                                    this.data.viewMode = userInputData.viewMode;
+                                if ((userInputData === null || userInputData === void 0 ? void 0 : userInputData.zoom) !== undefined)
+                                    this.data.zoom = userInputData.zoom;
+                                if ((userInputData === null || userInputData === void 0 ? void 0 : userInputData.address) !== undefined)
+                                    this.data.address = userInputData.address;
+                                if ((userInputData === null || userInputData === void 0 ? void 0 : userInputData.apiKey) !== undefined)
+                                    this.data.apiKey = userInputData.apiKey;
+                                this.iframeElm.url = this.getUrl();
                                 if (builder === null || builder === void 0 ? void 0 : builder.setData)
-                                    builder.setData(userInputData);
-                                this.setData(userInputData);
+                                    builder.setData(this.data);
                             },
                             undo: () => {
+                                this.data = Object.assign({}, oldData);
+                                this.iframeElm.url = this.getUrl();
                                 if (builder === null || builder === void 0 ? void 0 : builder.setData)
-                                    builder.setData(oldData);
-                                this.setData(oldData);
+                                    builder.setData(this.data);
                             },
                             redo: () => { },
                         };
