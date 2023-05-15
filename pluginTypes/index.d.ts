@@ -62,6 +62,9 @@ declare module "@scom/scom-map/data.json.ts" {
         apiUrl: string;
         embeddedUrl: string;
         defaultBuilderData: {
+            lat: number;
+            long: number;
+            address: string;
             zoom: number;
         };
     };
