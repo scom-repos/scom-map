@@ -75,7 +75,7 @@ declare module "@scom/scom-map/index.css.ts" { }
 /// <amd-module name="@scom/scom-map" />
 declare module "@scom/scom-map" {
     import { Module, IDataSchema, Container, ControlElement } from '@ijstech/components';
-    import { ViewModeType } from "@scom/scom-map/interface.ts";
+    import { IData, ViewModeType } from "@scom/scom-map/interface.ts";
     import "@scom/scom-map/index.css.ts";
     interface ScomMapElement extends ControlElement {
         long?: number;
@@ -123,7 +123,7 @@ declare module "@scom/scom-map" {
         set showFooter(value: boolean);
         get showHeader(): boolean;
         set showHeader(value: boolean);
-        getConfigurators(): {
+        getConfigurators(): ({
             name: string;
             target: string;
             getActions: () => {
@@ -137,10 +137,33 @@ declare module "@scom/scom-map" {
                 userInputDataSchema: IDataSchema;
             }[];
             getData: any;
+            setData: (data: IData) => Promise<void>;
+            getTag: any;
+            setTag: any;
+            getLinkParams?: undefined;
+            setLinkParams?: undefined;
+        } | {
+            name: string;
+            target: string;
+            getActions: () => {
+                name: string;
+                icon: string;
+                command: (builder: any, userInputData: any) => {
+                    execute: () => void;
+                    undo: () => void;
+                    redo: () => void;
+                };
+                userInputDataSchema: IDataSchema;
+            }[];
+            getLinkParams: () => {
+                data: string;
+            };
+            setLinkParams: (params: any) => Promise<void>;
+            getData: any;
             setData: any;
             getTag: any;
             setTag: any;
-        }[];
+        })[];
         private getData;
         private getUrl;
         private setData;
