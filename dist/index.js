@@ -20,13 +20,13 @@ define("@scom/scom-map/store.ts", ["require", "exports"], function (require, exp
     };
     const setDataFromSCConfig = (options) => {
         if (options.apiKey) {
-            exports.setAPIKey(options.apiKey);
+            (0, exports.setAPIKey)(options.apiKey);
         }
         if (options.apiUrl) {
-            exports.setAPIUrl(options.apiUrl);
+            (0, exports.setAPIUrl)(options.apiUrl);
         }
         if (options.embeddedUrl) {
-            exports.setEmbeddedUrl(options.embeddedUrl);
+            (0, exports.setEmbeddedUrl)(options.embeddedUrl);
         }
     };
     exports.setDataFromSCConfig = setDataFromSCConfig;
@@ -92,7 +92,7 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
             super(parent, options);
             this.data = {};
             if (data_json_1.default) {
-                store_1.setDataFromSCConfig(data_json_1.default);
+                (0, store_1.setDataFromSCConfig)(data_json_1.default);
             }
         }
         init() {
@@ -103,14 +103,17 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
                 width: width ? this.width : '500px',
                 height: height ? this.height : '300px'
             });
-            this.data.long = this.getAttribute('long', true, 0);
-            this.data.lat = this.getAttribute('lat', true, 0);
-            this.data.viewMode = this.getAttribute('viewMode', true, 'roadmap');
-            this.data.zoom = this.getAttribute('zoom', true, DEFAULT_ZOOM);
-            this.data.address = this.getAttribute('address', true, '');
-            this.data.showHeader = this.getAttribute('showHeader', true, false);
-            this.data.showFooter = this.getAttribute('showFooter', true, false);
-            this.setData(this.data);
+            const lazyLoad = this.getAttribute('lazyLoad', true, false);
+            if (!lazyLoad) {
+                this.data.long = this.getAttribute('long', true, 0);
+                this.data.lat = this.getAttribute('lat', true, 0);
+                this.data.viewMode = this.getAttribute('viewMode', true, 'roadmap');
+                this.data.zoom = this.getAttribute('zoom', true, DEFAULT_ZOOM);
+                this.data.address = this.getAttribute('address', true, '');
+                this.data.showHeader = this.getAttribute('showHeader', true, false);
+                this.data.showFooter = this.getAttribute('showFooter', true, false);
+                this.setData(this.data);
+            }
         }
         static async create(options, parent) {
             let self = new this(parent, options);
@@ -223,9 +226,9 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
             return this.data;
         }
         getUrl() {
-            const baseUrl = store_1.getAPIUrl();
+            const baseUrl = (0, store_1.getAPIUrl)();
             const params = new URLSearchParams();
-            const apiKey = this.data.apiKey || store_1.getAPIKey() || '';
+            const apiKey = this.data.apiKey || (0, store_1.getAPIKey)() || '';
             params.append('key', apiKey);
             const position = `${this.lat},${this.long}`;
             if (this.address) {
@@ -245,8 +248,10 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
             const url = this.getUrl();
             this.iframeElm.url = url;
             if (this.dappContainer) {
-                this.dappContainer.showHeader = this.showHeader;
-                this.dappContainer.showFooter = this.showFooter;
+                this.dappContainer.setData({
+                    showHeader: this.showHeader,
+                    showFooter: this.showFooter
+                });
             }
         }
         getTag() {
@@ -356,7 +361,7 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
     };
     ScomMap = __decorate([
         components_2.customModule,
-        components_2.customElements('i-scom-map')
+        (0, components_2.customElements)('i-scom-map')
     ], ScomMap);
     exports.default = ScomMap;
 });

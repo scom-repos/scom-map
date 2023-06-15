@@ -78,6 +78,7 @@ declare module "@scom/scom-map" {
     import { IData, ViewModeType } from "@scom/scom-map/interface.ts";
     import "@scom/scom-map/index.css.ts";
     interface ScomMapElement extends ControlElement {
+        lazyLoad?: boolean;
         long?: number;
         lat?: number;
         viewMode?: ViewModeType;

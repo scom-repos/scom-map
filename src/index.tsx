@@ -18,6 +18,7 @@ import './index.css'
 const DEFAULT_ZOOM = 14;
 
 interface ScomMapElement extends ControlElement {
+  lazyLoad?: boolean;
   long?: number;
   lat?: number;
   viewMode?: ViewModeType;
@@ -69,14 +70,17 @@ export default class ScomMap extends Module {
       width: width ? this.width : '500px',
       height: height ? this.height : '300px'
     })
-    this.data.long = this.getAttribute('long', true, 0)
-    this.data.lat = this.getAttribute('lat', true, 0)
-    this.data.viewMode = this.getAttribute('viewMode', true, 'roadmap')
-    this.data.zoom = this.getAttribute('zoom', true, DEFAULT_ZOOM)
-    this.data.address = this.getAttribute('address', true, '')
-    this.data.showHeader = this.getAttribute('showHeader', true, false)
-    this.data.showFooter = this.getAttribute('showFooter', true, false)
-    this.setData(this.data);
+    const lazyLoad = this.getAttribute('lazyLoad', true, false);
+    if (!lazyLoad) {
+      this.data.long = this.getAttribute('long', true, 0)
+      this.data.lat = this.getAttribute('lat', true, 0)
+      this.data.viewMode = this.getAttribute('viewMode', true, 'roadmap')
+      this.data.zoom = this.getAttribute('zoom', true, DEFAULT_ZOOM)
+      this.data.address = this.getAttribute('address', true, '')
+      this.data.showHeader = this.getAttribute('showHeader', true, false)
+      this.data.showFooter = this.getAttribute('showFooter', true, false)
+      this.setData(this.data);
+    }
   }
 
   static async create(options?: ScomMapElement, parent?: Container) {
@@ -216,8 +220,10 @@ export default class ScomMap extends Module {
     const url = this.getUrl()
     this.iframeElm.url = url
     if (this.dappContainer) {
-      this.dappContainer.showHeader = this.showHeader;
-      this.dappContainer.showFooter = this.showFooter;
+      this.dappContainer.setData({
+        showHeader: this.showHeader,
+        showFooter: this.showFooter
+    });
     }
   }
 
