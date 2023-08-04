@@ -1,0 +1,11 @@
+{
+    "name": "@scom/scom-map",
+    "type": "widget",
+    "version": "0.1.4",
+    "dependencies": [
+        "@ijstech/components",
+        "@ijstech/eth-contract",
+        "@ijstech/eth-wallet",
+        "@scom/scom-dapp-container"
+    ]
+}
