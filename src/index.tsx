@@ -5,17 +5,31 @@ import {
   Container,
   ControlElement,
   customElements,
-  Iframe
+  Iframe,
+  VStack,
+  HStack,
+  Button,
+  Styles
 } from '@ijstech/components'
 import { IData, ViewModeType } from './interface'
-import { getAPIKey, getAPIUrl, setDataFromSCConfig } from './store'
+import { setDataFromSCConfig } from './store'
 import {} from '@ijstech/eth-contract'
 import {} from '@ijstech/eth-wallet'
 import ScomDappContainer from '@scom/scom-dapp-container'
 import dataJson from './data.json'
 import './index.css'
+import {
+  DEFAULT_LAT,
+  DEFAULT_LONG,
+  DEFAULT_VIEW_MODE,
+  DEFAULT_ZOOM,
+  getPropertiesSchema,
+  getThemeSchema,
+  getUrl
+} from './utils'
+import ScomMapConfig from './config/index'
 
-const DEFAULT_ZOOM = 14;
+const Theme = Styles.Theme.ThemeVars
 
 interface ScomMapElement extends ControlElement {
   lazyLoad?: boolean;
@@ -72,9 +86,9 @@ export default class ScomMap extends Module {
     })
     const lazyLoad = this.getAttribute('lazyLoad', true, false);
     if (!lazyLoad) {
-      this.data.long = this.getAttribute('long', true, 0)
-      this.data.lat = this.getAttribute('lat', true, 0)
-      this.data.viewMode = this.getAttribute('viewMode', true, 'roadmap')
+      this.data.long = this.getAttribute('long', true, DEFAULT_LONG)
+      this.data.lat = this.getAttribute('lat', true, DEFAULT_LAT)
+      this.data.viewMode = this.getAttribute('viewMode', true, DEFAULT_VIEW_MODE)
       this.data.zoom = this.getAttribute('zoom', true, DEFAULT_ZOOM)
       this.data.address = this.getAttribute('address', true, '')
       this.data.showHeader = this.getAttribute('showHeader', true, false)
@@ -90,21 +104,21 @@ export default class ScomMap extends Module {
   }
 
   get long() {
-    return this.data.long ?? 0;
+    return this.data.long ?? DEFAULT_LONG;
   }
   set long(value: number) {
     this.data.long = value;
   }
 
   get lat() {
-    return this.data.lat ?? 0;
+    return this.data.lat ?? DEFAULT_LAT;
   }
   set lat(value: number) {
     this.data.lat = value;
   }
 
   get viewMode() {
-    return this.data.viewMode ?? 'roadmap';
+    return this.data.viewMode ?? DEFAULT_VIEW_MODE;
   }
   set viewMode(value: ViewModeType) {
     this.data.viewMode = value;
@@ -147,8 +161,8 @@ export default class ScomMap extends Module {
         name: 'Builder Configurator',
         target: 'Builders',
         getActions: () => {
-          const propertiesSchema = this.getPropertiesSchema();
-          const themeSchema = this.getThemeSchema();
+          const propertiesSchema = getPropertiesSchema();
+          const themeSchema = getThemeSchema();
           return this._getActions(propertiesSchema, themeSchema);
         },
         getData: this.getData.bind(this),
@@ -163,8 +177,8 @@ export default class ScomMap extends Module {
         name: 'Emdedder Configurator',
         target: 'Embedders',
         getActions: () => {
-          const propertiesSchema = this.getPropertiesSchema();
-          const themeSchema = this.getThemeSchema(true);
+          const propertiesSchema = getPropertiesSchema();
+          const themeSchema = getThemeSchema(true);
           return this._getActions(propertiesSchema, themeSchema);
         },
         getLinkParams: () => {
@@ -197,27 +211,9 @@ export default class ScomMap extends Module {
     return this.data
   }
 
-  private getUrl() {
-    const baseUrl = getAPIUrl();
-    const params = new URLSearchParams();
-    const apiKey = this.data.apiKey || getAPIKey() || ''
-    params.append('key', apiKey);
-    const position = `${this.lat},${this.long}`;
-    if (this.address) {
-      params.append('q', this.address);
-      if (this.lat || this.long)
-        params.append('center', position);
-    } else {
-      params.append('q', position);
-    }
-    params.append('zoom', this.zoom.toString());
-    params.append('maptype', this.viewMode);
-    return `${baseUrl}?${params.toString()}`;
-  }
-
   private async setData(value: IData) {
     this.data = value
-    const url = this.getUrl()
+    const url = getUrl({...this.data})
     this.iframeElm.url = url
     if (this.dappContainer) {
       this.dappContainer.setData({
@@ -239,59 +235,6 @@ export default class ScomMap extends Module {
     }
   }
 
-  private getPropertiesSchema() {
-    const propertiesSchema: IDataSchema = {
-      type: 'object',
-      properties: {
-        address: {
-          type: 'string'
-        },
-        lat: {
-          type: 'number',
-          title: 'Latitude'
-        },
-        long: {
-          type: 'number',
-          title: 'Longitude'
-        },
-        zoom: {
-          type: 'number',
-          minimum: 0,
-          maximum: 21,
-          default: DEFAULT_ZOOM
-        },
-        viewMode: {
-          type: "string",
-          enum: ['roadmap', 'satellite'],
-          default: 'roadmap'
-        },
-        apiKey: {
-          type: "string",
-          title: "API Key"
-        }
-      }
-    }
-    return propertiesSchema;
-  }
-
-  private getThemeSchema(readOnly = false) {
-    const themeSchema: IDataSchema = {
-      type: 'object',
-      properties: {
-        width: {
-          type: 'string',
-          readOnly
-        },
-        height: {
-          type: 'string',
-          readOnly
-        },
-      },
-    }
-
-    return themeSchema;
-  }
-
   private _getActions(settingSchema: IDataSchema, themeSchema: IDataSchema) {
     const actions = [
       {
@@ -308,18 +251,42 @@ export default class ScomMap extends Module {
               if (userInputData?.zoom !== undefined) this.data.zoom = userInputData.zoom;
               if (userInputData?.address !== undefined) this.data.address = userInputData.address;
               if (userInputData?.apiKey !== undefined) this.data.apiKey = userInputData.apiKey;
-              this.iframeElm.url = this.getUrl();
+              this.iframeElm.url = getUrl({...this.data});
               if (builder?.setData) builder.setData(this.data);
             },
             undo: () => {
               this.data = {...oldData};
-              this.iframeElm.url = this.getUrl();
+              this.iframeElm.url = getUrl({...this.data});
               if (builder?.setData) builder.setData(this.data);
             },
             redo: () => {},
           }
         },
-        userInputDataSchema: settingSchema as IDataSchema,
+        customUI: {
+          render: (data?: any, onConfirm?: (result: boolean, data: any) => void) => {
+            const vstack = new VStack(null, {gap: '1rem'});
+            const config = new ScomMapConfig(null, {...this.data});
+            const hstack = new HStack(null, {
+              verticalAlignment: 'center',
+              horizontalAlignment: 'end'
+            });
+            const button = new Button(null, {
+              caption: 'Confirm',
+              height: 40,
+              font: {color: Theme.colors.primary.contrastText}
+            });
+            hstack.append(button);
+            vstack.append(config);
+            vstack.append(hstack);
+            button.onClick = async () => {
+              await config.updateData();
+              if (onConfirm) {
+                onConfirm(true, {...this.data, ...config.data});
+              }
+            }
+            return vstack;
+          }
+        }
       },
     ]
     return actions

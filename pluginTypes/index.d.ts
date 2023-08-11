@@ -72,9 +72,66 @@ declare module "@scom/scom-map/data.json.ts" {
 }
 /// <amd-module name="@scom/scom-map/index.css.ts" />
 declare module "@scom/scom-map/index.css.ts" { }
+/// <amd-module name="@scom/scom-map/utils.ts" />
+declare module "@scom/scom-map/utils.ts" {
+    import { IDataSchema } from "@ijstech/components";
+    import { IData } from "@scom/scom-map/interface.ts";
+    export const DEFAULT_ZOOM = 14;
+    export const DEFAULT_LONG = 0;
+    export const DEFAULT_LAT = 0;
+    export const DEFAULT_VIEW_MODE = "roadmap";
+    export const getPropertiesSchema: () => IDataSchema;
+    export const getThemeSchema: (readOnly?: boolean) => IDataSchema;
+    export const getUrl: (data: IData) => string;
+}
+/// <amd-module name="@scom/scom-map/config/index.css.ts" />
+declare module "@scom/scom-map/config/index.css.ts" {
+    const _default_1: void;
+    export default _default_1;
+}
+/// <amd-module name="@scom/scom-map/config/index.tsx" />
+declare module "@scom/scom-map/config/index.tsx" {
+    import { Module, ControlElement, Container } from '@ijstech/components';
+    import "@scom/scom-map/config/index.css.ts";
+    import { IData, ViewModeType } from "@scom/scom-map/interface.ts";
+    interface ScomImageConfigElement extends ControlElement {
+        long?: number;
+        lat?: number;
+        viewMode?: ViewModeType;
+        zoom?: number;
+        address?: string;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ["i-scom-map-config"]: ScomImageConfigElement;
+            }
+        }
+    }
+    global {
+        interface Window {
+            initMap: () => void;
+        }
+    }
+    export default class ScomMapConfig extends Module {
+        private formEl;
+        private iframeMap;
+        private _data;
+        private searchTimer;
+        constructor(parent?: Container, options?: any);
+        get data(): IData;
+        set data(value: IData);
+        updateData(): Promise<void>;
+        private renderUI;
+        private onInputChanged;
+        disconnectCallback(): void;
+        init(): Promise<void>;
+        render(): any;
+    }
+}
 /// <amd-module name="@scom/scom-map" />
 declare module "@scom/scom-map" {
-    import { Module, IDataSchema, Container, ControlElement } from '@ijstech/components';
+    import { Module, Container, ControlElement, VStack } from '@ijstech/components';
     import { IData, ViewModeType } from "@scom/scom-map/interface.ts";
     import "@scom/scom-map/index.css.ts";
     interface ScomMapElement extends ControlElement {
@@ -135,7 +192,9 @@ declare module "@scom/scom-map" {
                     undo: () => void;
                     redo: () => void;
                 };
-                userInputDataSchema: IDataSchema;
+                customUI: {
+                    render: (data?: any, onConfirm?: (result: boolean, data: any) => void) => VStack;
+                };
             }[];
             getData: any;
             setData: (data: IData) => Promise<void>;
@@ -154,7 +213,9 @@ declare module "@scom/scom-map" {
                     undo: () => void;
                     redo: () => void;
                 };
-                userInputDataSchema: IDataSchema;
+                customUI: {
+                    render: (data?: any, onConfirm?: (result: boolean, data: any) => void) => VStack;
+                };
             }[];
             getLinkParams: () => {
                 data: string;
@@ -166,12 +227,9 @@ declare module "@scom/scom-map" {
             setTag: any;
         })[];
         private getData;
-        private getUrl;
         private setData;
         private getTag;
         private setTag;
-        private getPropertiesSchema;
-        private getThemeSchema;
         private _getActions;
         render(): any;
     }
