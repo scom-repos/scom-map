@@ -6,13 +6,11 @@ import {
   Container,
   Iframe,
   Form,
-  Input,
-  Panel
+  Input
 } from '@ijstech/components'
 import './index.css'
 import { IData, ViewModeType } from '../interface';
 import { DEFAULT_LAT, DEFAULT_LONG, DEFAULT_VIEW_MODE, DEFAULT_ZOOM, getPropertiesSchema, getUrl } from '../utils';
-import { getAPIKey } from '../store';
 
 interface ScomImageConfigElement extends ControlElement {
   long?: number;
@@ -29,14 +27,6 @@ declare global {
     }
   }
 }
-
-declare global {
-  interface Window {
-    initMap: () => void;
-  }
-}
-
-declare const google: any;
 
 @customModule
 @customElements('i-scom-map-config')
@@ -85,11 +75,13 @@ export default class ScomMapConfig extends Module {
     for (let input of inputs) {
       const inputEl = input as Input
       // const scope: string = inputEl.getAttribute('scope', true, '')
+      // if (scope.includes('/long') || scope.includes('/lat'))
+      //   inputEl.readOnly = true
       inputEl.onChanged = this.onInputChanged
     }
   }
 
-  private onInputChanged() {
+  private onInputChanged(target: Input) {
     if (this.searchTimer) clearTimeout(this.searchTimer)
     this.searchTimer = setTimeout(async () => {
       const data = await this.formEl.getFormData()
@@ -98,8 +90,8 @@ export default class ScomMapConfig extends Module {
     }, 500)
   }
 
-  disconnectCallback(): void {
-    super.disconnectCallback()
+  disconnectedCallback(): void {
+    super.disconnectedCallback()
     if (this.searchTimer) clearTimeout(this.searchTimer)
   }
 

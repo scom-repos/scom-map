@@ -238,8 +238,8 @@ export default class ScomMap extends Module {
   private _getActions(settingSchema: IDataSchema, themeSchema: IDataSchema) {
     const actions = [
       {
-        name: 'Settings',
-        icon: 'cog',
+        name: 'Edit',
+        icon: 'edit',
         command: (builder: any, userInputData: any) => {
           let oldData = {};
           return {

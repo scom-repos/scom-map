@@ -1,5 +1,4 @@
 export const state = {
-  embeddedUrl: "",
   apiKey: "",
   apiUrl: ""
 }
@@ -11,17 +10,6 @@ export const setDataFromSCConfig = (options: any) => {
   if (options.apiUrl) {
     setAPIUrl(options.apiUrl);
   }
-  if (options.embeddedUrl) {
-    setEmbeddedUrl(options.embeddedUrl);
-  }
-}
-
-export const setEmbeddedUrl = (url: string) => {
-  state.embeddedUrl = url;
-}
-
-export const getEmbeddedUrl = () => {
-  return state.embeddedUrl;
 }
 
 export const setAPIKey = (value: string) => {

@@ -11,10 +11,9 @@ define("@scom/scom-map/interface.ts", ["require", "exports"], function (require,
 define("@scom/scom-map/store.ts", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.getAPIUrl = exports.setAPIUrl = exports.getAPIKey = exports.setAPIKey = exports.getEmbeddedUrl = exports.setEmbeddedUrl = exports.setDataFromSCConfig = exports.state = void 0;
+    exports.getAPIUrl = exports.setAPIUrl = exports.getAPIKey = exports.setAPIKey = exports.setDataFromSCConfig = exports.state = void 0;
     ///<amd-module name='@scom/scom-map/store.ts'/> 
     exports.state = {
-        embeddedUrl: "",
         apiKey: "",
         apiUrl: ""
     };
@@ -25,19 +24,8 @@ define("@scom/scom-map/store.ts", ["require", "exports"], function (require, exp
         if (options.apiUrl) {
             (0, exports.setAPIUrl)(options.apiUrl);
         }
-        if (options.embeddedUrl) {
-            (0, exports.setEmbeddedUrl)(options.embeddedUrl);
-        }
     };
     exports.setDataFromSCConfig = setDataFromSCConfig;
-    const setEmbeddedUrl = (url) => {
-        exports.state.embeddedUrl = url;
-    };
-    exports.setEmbeddedUrl = setEmbeddedUrl;
-    const getEmbeddedUrl = () => {
-        return exports.state.embeddedUrl;
-    };
-    exports.getEmbeddedUrl = getEmbeddedUrl;
     const setAPIKey = (value) => {
         exports.state.apiKey = value;
     };
@@ -62,7 +50,6 @@ define("@scom/scom-map/data.json.ts", ["require", "exports"], function (require,
     exports.default = {
         "apiKey": "AIzaSyDc7PnOq3Hxzq6dxeUVaY8WGLHIePl0swY",
         "apiUrl": "https://www.google.com/maps/embed/v1/place",
-        "embeddedUrl": "https://maps.google.com/maps?hl=en&q={lat},{long}&t=h&z=14&ie=UTF8&iwloc=B&output=embed",
         "defaultBuilderData": {
             "lat": 40.748817,
             "long": -73.985428,
@@ -98,14 +85,16 @@ define("@scom/scom-map/utils.ts", ["require", "exports", "@scom/scom-map/store.t
                 address: {
                     type: 'string'
                 },
-                lat: {
-                    type: 'number',
-                    title: 'Latitude'
-                },
-                long: {
-                    type: 'number',
-                    title: 'Longitude'
-                },
+                // lat: {
+                //   type: 'number',
+                //   title: 'Latitude',
+                //   readOnly: true
+                // },
+                // long: {
+                //   type: 'number',
+                //   title: 'Longitude',
+                //   readOnly: true
+                // },
                 zoom: {
                     type: 'number',
                     minimum: 0,
@@ -143,7 +132,7 @@ define("@scom/scom-map/utils.ts", ["require", "exports", "@scom/scom-map/store.t
         return themeSchema;
     };
     exports.getThemeSchema = getThemeSchema;
-    const getUrl = (data) => {
+    const getUrl = (data, isCentered) => {
         const { address = '', lat = exports.DEFAULT_LAT, long = exports.DEFAULT_LONG, zoom = exports.DEFAULT_ZOOM, viewMode = exports.DEFAULT_VIEW_MODE } = data || {};
         const baseUrl = (0, store_1.getAPIUrl)();
         const params = new URLSearchParams();
@@ -152,7 +141,7 @@ define("@scom/scom-map/utils.ts", ["require", "exports", "@scom/scom-map/store.t
         const position = `${lat},${long}`;
         if (address) {
             params.append('q', address);
-            if (lat || long)
+            if ((lat || long) && isCentered)
                 params.append('center', position);
         }
         else {
@@ -210,10 +199,12 @@ define("@scom/scom-map/config/index.tsx", ["require", "exports", "@ijstech/compo
             for (let input of inputs) {
                 const inputEl = input;
                 // const scope: string = inputEl.getAttribute('scope', true, '')
+                // if (scope.includes('/long') || scope.includes('/lat'))
+                //   inputEl.readOnly = true
                 inputEl.onChanged = this.onInputChanged;
             }
         }
-        onInputChanged() {
+        onInputChanged(target) {
             if (this.searchTimer)
                 clearTimeout(this.searchTimer);
             this.searchTimer = setTimeout(async () => {
@@ -222,8 +213,8 @@ define("@scom/scom-map/config/index.tsx", ["require", "exports", "@ijstech/compo
                 this.iframeMap.url = url;
             }, 500);
         }
-        disconnectCallback() {
-            super.disconnectCallback();
+        disconnectedCallback() {
+            super.disconnectedCallback();
             if (this.searchTimer)
                 clearTimeout(this.searchTimer);
         }
@@ -420,8 +411,8 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
         _getActions(settingSchema, themeSchema) {
             const actions = [
                 {
-                    name: 'Settings',
-                    icon: 'cog',
+                    name: 'Edit',
+                    icon: 'edit',
                     command: (builder, userInputData) => {
                         let oldData = {};
                         return {
