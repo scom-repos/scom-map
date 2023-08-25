@@ -43,13 +43,10 @@ declare module "@scom/scom-map/interface.ts" {
 /// <amd-module name="@scom/scom-map/store.ts" />
 declare module "@scom/scom-map/store.ts" {
     export const state: {
-        embeddedUrl: string;
         apiKey: string;
         apiUrl: string;
     };
     export const setDataFromSCConfig: (options: any) => void;
-    export const setEmbeddedUrl: (url: string) => void;
-    export const getEmbeddedUrl: () => string;
     export const setAPIKey: (value: string) => void;
     export const getAPIKey: () => string;
     export const setAPIUrl: (value: string) => void;
@@ -60,7 +57,6 @@ declare module "@scom/scom-map/data.json.ts" {
     const _default: {
         apiKey: string;
         apiUrl: string;
-        embeddedUrl: string;
         defaultBuilderData: {
             lat: number;
             long: number;
@@ -82,7 +78,7 @@ declare module "@scom/scom-map/utils.ts" {
     export const DEFAULT_VIEW_MODE = "roadmap";
     export const getPropertiesSchema: () => IDataSchema;
     export const getThemeSchema: (readOnly?: boolean) => IDataSchema;
-    export const getUrl: (data: IData) => string;
+    export const getUrl: (data: IData, isCentered?: boolean) => string;
 }
 /// <amd-module name="@scom/scom-map/config/index.css.ts" />
 declare module "@scom/scom-map/config/index.css.ts" {
@@ -108,11 +104,6 @@ declare module "@scom/scom-map/config/index.tsx" {
             }
         }
     }
-    global {
-        interface Window {
-            initMap: () => void;
-        }
-    }
     export default class ScomMapConfig extends Module {
         private formEl;
         private iframeMap;
@@ -124,7 +115,7 @@ declare module "@scom/scom-map/config/index.tsx" {
         updateData(): Promise<void>;
         private renderUI;
         private onInputChanged;
-        disconnectCallback(): void;
+        disconnectedCallback(): void;
         init(): Promise<void>;
         render(): any;
     }

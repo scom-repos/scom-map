@@ -14,14 +14,16 @@ export const getPropertiesSchema = () => {
       address: {
         type: 'string'
       },
-      lat: {
-        type: 'number',
-        title: 'Latitude'
-      },
-      long: {
-        type: 'number',
-        title: 'Longitude'
-      },
+      // lat: {
+      //   type: 'number',
+      //   title: 'Latitude',
+      //   readOnly: true
+      // },
+      // long: {
+      //   type: 'number',
+      //   title: 'Longitude',
+      //   readOnly: true
+      // },
       zoom: {
         type: 'number',
         minimum: 0,
@@ -60,7 +62,7 @@ export const getThemeSchema = (readOnly = false) => {
   return themeSchema;
 }
 
-export const getUrl = (data: IData) => {
+export const getUrl = (data: IData, isCentered?: boolean) => {
   const { address = '', lat = DEFAULT_LAT, long = DEFAULT_LONG, zoom = DEFAULT_ZOOM, viewMode = DEFAULT_VIEW_MODE } = data || {};
   const baseUrl = getAPIUrl();
   const params = new URLSearchParams();
@@ -69,7 +71,7 @@ export const getUrl = (data: IData) => {
   const position = `${lat},${long}`;
   if (address) {
     params.append('q', address);
-    if (lat || long)
+    if ((lat || long) && isCentered)
       params.append('center', position);
   } else {
     params.append('q', position);
