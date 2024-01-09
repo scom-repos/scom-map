@@ -21,12 +21,6 @@ declare module "@scom/scom-map/interface.ts" {
         defaultEdit?: boolean;
         tag?: any;
         validate?: () => boolean;
-        readonly onEdit: () => Promise<void>;
-        readonly onConfirm: () => Promise<void>;
-        readonly onDiscard: () => Promise<void>;
-        edit: () => Promise<void>;
-        confirm: () => Promise<void>;
-        discard: () => Promise<void>;
     }
     export type ViewModeType = 'roadmap' | 'satellite';
     export interface IData {
@@ -38,6 +32,13 @@ declare module "@scom/scom-map/interface.ts" {
         apiKey?: string;
         showHeader?: boolean;
         showFooter?: boolean;
+    }
+    export interface IMapPlacePrediction {
+        description: string;
+        placeId: string;
+        mainText: string;
+        secondaryText?: string;
+        types: string[];
     }
 }
 /// <amd-module name="@scom/scom-map/store.ts" />
@@ -58,9 +59,6 @@ declare module "@scom/scom-map/data.json.ts" {
         apiKey: string;
         apiUrl: string;
         defaultBuilderData: {
-            lat: number;
-            long: number;
-            address: string;
             zoom: number;
         };
     };
@@ -120,6 +118,42 @@ declare module "@scom/scom-map/config/index.tsx" {
         render(): any;
     }
 }
+/// <amd-module name="@scom/scom-map/googleMap.ts" />
+declare module "@scom/scom-map/googleMap.ts" {
+    import { Panel } from "@ijstech/components";
+    import { IMapPlacePrediction } from "@scom/scom-map/interface.ts";
+    export class GoogleMap {
+        private pnlMap;
+        private map;
+        private geocoder;
+        private center;
+        private placeService;
+        private autocompleteService;
+        private markers;
+        private zoom;
+        constructor(pnlMap: Panel);
+        handleMapsAPICallback(): void;
+        initializeMap(): void;
+        getZoom(): number;
+        getCenter(): {
+            lat: number;
+            lng: number;
+        };
+        createMapMarker(location: any): void;
+        addMapMarker(lat: number, lng: number, caption: string): void;
+        createLatLngObject(lat: number, lng: number): any;
+        searchPlaces(lat: number, lng: number, value: string): Promise<any>;
+        getDistance(lat1: number, lng1: number, lat2: number, lng2: number): number;
+        getLatLngFromAddress(value: string): Promise<{
+            lat: number;
+            lng: number;
+        }>;
+        getPlacePredictions(input: string): Promise<IMapPlacePrediction[]>;
+        markPlaceOnMapByLatLng(lat: number, lng: number): void;
+        markPlaceOnMapByPlaceId(placeId: string): Promise<void>;
+        markPlacesOnMap(query: string): Promise<void>;
+    }
+}
 /// <amd-module name="@scom/scom-map" />
 declare module "@scom/scom-map" {
     import { Module, Container, ControlElement, VStack } from '@ijstech/components';
@@ -143,19 +177,14 @@ declare module "@scom/scom-map" {
         }
     }
     export default class ScomMap extends Module {
+        private pnlMap;
         private data;
-        private iframeElm;
-        private dappContainer;
+        private map;
         tag: any;
-        readonly onConfirm: () => Promise<void>;
-        readonly onDiscard: () => Promise<void>;
-        readonly onEdit: () => Promise<void>;
         defaultEdit?: boolean;
         validate?: () => boolean;
-        edit: () => Promise<void>;
-        confirm: () => Promise<void>;
-        discard: () => Promise<void>;
         constructor(parent?: Container, options?: any);
+        initGoogleMap(): Promise<void>;
         init(): void;
         static create(options?: ScomMapElement, parent?: Container): Promise<ScomMap>;
         get long(): number;
@@ -217,11 +246,13 @@ declare module "@scom/scom-map" {
             getTag: any;
             setTag: any;
         })[];
-        private getData;
-        private setData;
+        getData(): IData;
+        setData(value: IData): Promise<void>;
         private getTag;
         private setTag;
         private _getActions;
+        getPlacePredictions(input: string): Promise<import("@scom/scom-map/interface.ts").IMapPlacePrediction[]>;
+        markPlaceOnMap(placeId: string): Promise<void>;
         render(): any;
     }
 }

@@ -15,11 +15,10 @@
   },
   "keywords": [],
   "dependencies": {
-    "@scom/scom-dapp-container": "^0.1.4"
+    "@ijstech/components": "^0.1.38"
   },
   "devDependencies": {
     "@ijstech/cli": "^0.1.26",
-    "@ijstech/compiler": "^0.1.18",
-    "@ijstech/components": "^0.1.38"
+    "@ijstech/compiler": "^0.1.18"
   }
 }

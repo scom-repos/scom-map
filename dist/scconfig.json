@@ -5,9 +5,6 @@
     "dependencies": [
         "@ijstech/components",
         "@ijstech/eth-contract",
-        "@ijstech/eth-wallet",
-        "@scom/scom-network-list",
-        "@scom/scom-multicall",
-        "@scom/scom-dapp-container"
+        "@ijstech/eth-wallet"
     ]
 }

@@ -5,7 +5,7 @@ services:
     image: node:18
     volumes:
       - .:/app
-    command: bash -c "cd /app && rm -rf node_modules && rm -f package-lock.json && npm i && cd test && rm -rf node_modules && rm -f package-lock.json && npm i"
+    command: bash -c "cd /app && rm -rf node_modules && rm -f package-lock.json && npm i"
   installTest:
     user: node
     image: node:18
@@ -25,7 +25,7 @@ services:
       - "8039:8080"
     volumes:
       - .:/app
-    command: bash -c "cd /app && npm run test"         
+    command: bash -c "cd /app/test && npm run test"         
   dev:
     #docker-compose run --rm dev bash
     user: node

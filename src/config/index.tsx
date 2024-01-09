@@ -6,7 +6,8 @@ import {
   Container,
   Iframe,
   Form,
-  Input
+  Input,
+  Panel
 } from '@ijstech/components'
 import './index.css'
 import { IData, ViewModeType } from '../interface';
