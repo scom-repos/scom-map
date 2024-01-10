@@ -185,19 +185,23 @@ export class GoogleMap {
         this.createMapMarker(location);
     }
 
-    markPlaceOnMapByPlaceId(placeId: string): Promise<void> {
-        if (!placeId) return Promise.resolve();
+    markPlaceOnMapByPlaceId(placeId: string): Promise<{ lat: number, lng: number, address: string }> {
+        if (!placeId) return Promise.resolve({ lat: 0, lng: 0, address: '' })
         return new Promise((resolve, reject) => {
             const request = {
                 placeId: placeId,
-                fields: ['geometry']
+                fields: ['name', 'formatted_address', 'geometry']
             };
 
             this.placeService.getDetails(request, (place, status) => {
                 if (status === google.maps.places.PlacesServiceStatus.OK) {
                     this.map.setCenter(place.geometry.location);
                     this.createMapMarker(place.geometry.location);
-                    resolve();
+                    resolve({
+                        lat: place.geometry.location.lat(),
+                        lng: place.geometry.location.lng(),
+                        address: `${place.name}, ${place.formatted_address}`
+                    });
                 } else {
                     reject(status);
                 }
@@ -205,22 +209,28 @@ export class GoogleMap {
         });
     }
 
-    markPlacesOnMap(query: string): Promise<void> {
-        if (!query) return Promise.resolve();
+    markPlaceOnMapByQuery(query: string): Promise<{ lat: number, lng: number, address: string }> {
+        if (!query) return Promise.resolve({ lat: 0, lng: 0, address: '' });
         return new Promise((resolve, reject) => {
             const request = {
                 query,
-                fields: ['name', 'geometry']
+                fields: ['name', 'formatted_address', 'geometry']
             };
 
             this.placeService.findPlaceFromQuery(request, (results, status) => {
                 if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-                    for (let i = 0; i < results.length; i++) {
-                        this.createMapMarker(results[i].geometry.location);
-                    }
-    
-                    this.map.setCenter(results[0].geometry.location);
-                    resolve();
+                    let firstResult = results[0];
+                    let firstLocation = firstResult.geometry.location;
+                    // for (let i = 0; i < results.length; i++) {
+                    //     this.createMapMarker(results[i].geometry.location);
+                    // }
+                    this.map.setCenter(firstLocation);
+                    this.createMapMarker(firstLocation);
+                    resolve({
+                        lat: firstLocation.lat(),
+                        lng: firstLocation.lng(),
+                        address: `${firstResult.name}, ${firstResult.formatted_address}`
+                    });
                 } else {
                     reject(status);
                 }

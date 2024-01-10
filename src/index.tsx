@@ -38,8 +38,6 @@ interface ScomMapElement extends ControlElement {
     viewMode?: ViewModeType;
     zoom?: number;
     address?: string;
-    showHeader?: boolean;
-    showFooter?: boolean;
 }
 
 declare global {
@@ -91,8 +89,6 @@ export default class ScomMap extends Module {
             this.data.viewMode = this.getAttribute('viewMode', true, DEFAULT_VIEW_MODE)
             this.data.zoom = this.getAttribute('zoom', true, DEFAULT_ZOOM)
             this.data.address = this.getAttribute('address', true, '')
-            this.data.showHeader = this.getAttribute('showHeader', true, false)
-            this.data.showFooter = this.getAttribute('showFooter', true, false)
             this.setData(this.data);
         }
     }
@@ -106,50 +102,21 @@ export default class ScomMap extends Module {
     get long() {
         return this.data.long ?? DEFAULT_LONG;
     }
-    set long(value: number) {
-        this.data.long = value;
-    }
 
     get lat() {
         return this.data.lat ?? DEFAULT_LAT;
-    }
-    set lat(value: number) {
-        this.data.lat = value;
     }
 
     get viewMode() {
         return this.data.viewMode ?? DEFAULT_VIEW_MODE;
     }
-    set viewMode(value: ViewModeType) {
-        this.data.viewMode = value;
-    }
 
     get address() {
         return this.data.address ?? '';
     }
-    set address(value: string) {
-        this.data.address = value;
-    }
 
     get zoom() {
         return this.data.zoom ?? DEFAULT_ZOOM;
-    }
-    set zoom(value: number) {
-        this.data.zoom = value;
-    }
-
-    get showFooter() {
-        return this.data.showFooter ?? false
-    }
-    set showFooter(value: boolean) {
-        this.data.showFooter = value
-    }
-
-    get showHeader() {
-        return this.data.showHeader ?? false
-    }
-    set showHeader(value: boolean) {
-        this.data.showHeader = value
     }
 
     getConfigurators() {
@@ -206,17 +173,22 @@ export default class ScomMap extends Module {
     }
 
     getData() {
-        return this.data
+        return this.data;
     }
 
-    async setData(value: IData) {
-        this.data = value
+    async setData(value: Partial<IData>) {
+        this.data = {
+            ...this.data,
+            ...value
+        }
         if (this.map) {
             if (this.data.lat && this.data.long) {
-                await this.map.markPlaceOnMapByLatLng(this.data.lat, this.data.long);
+                this.map.markPlaceOnMapByLatLng(this.data.lat, this.data.long);
             }
             else if (this.data.address) {
-                await this.map.markPlacesOnMap(this.data.address);
+                let {lat, lng} = await this.map.markPlaceOnMapByQuery(this.data.address);
+                this.data.lat = lat;
+                this.data.long = lng;
             }
         }
     }
@@ -290,7 +262,10 @@ export default class ScomMap extends Module {
     }
 
     async markPlaceOnMap(placeId: string) {
-        await this.map.markPlaceOnMapByPlaceId(placeId);
+        let {lat, lng, address} = await this.map.markPlaceOnMapByPlaceId(placeId);
+        this.data.lat = lat;
+        this.data.long = lng;
+        this.data.address = address;
     }
 
     render() {

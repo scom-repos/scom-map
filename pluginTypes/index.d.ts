@@ -1,27 +1,5 @@
 /// <amd-module name="@scom/scom-map/interface.ts" />
 declare module "@scom/scom-map/interface.ts" {
-    import { IDataSchema } from "@ijstech/components";
-    export interface ICommand {
-        execute(): void;
-        undo(): void;
-        redo(): void;
-    }
-    export interface IPageBlockAction {
-        name: string;
-        icon: string;
-        command: (builder: any, userInputData: any) => ICommand;
-        userInputDataSchema: IDataSchema;
-    }
-    export interface PageBlock {
-        getActions: () => IPageBlockAction[];
-        getData: () => any;
-        setData: (data: any) => Promise<void>;
-        getTag: () => any;
-        setTag: (tag: any) => Promise<void>;
-        defaultEdit?: boolean;
-        tag?: any;
-        validate?: () => boolean;
-    }
     export type ViewModeType = 'roadmap' | 'satellite';
     export interface IData {
         long?: number;
@@ -30,8 +8,6 @@ declare module "@scom/scom-map/interface.ts" {
         zoom?: number;
         address?: string;
         apiKey?: string;
-        showHeader?: boolean;
-        showFooter?: boolean;
     }
     export interface IMapPlacePrediction {
         description: string;
@@ -150,8 +126,16 @@ declare module "@scom/scom-map/googleMap.ts" {
         }>;
         getPlacePredictions(input: string): Promise<IMapPlacePrediction[]>;
         markPlaceOnMapByLatLng(lat: number, lng: number): void;
-        markPlaceOnMapByPlaceId(placeId: string): Promise<void>;
-        markPlacesOnMap(query: string): Promise<void>;
+        markPlaceOnMapByPlaceId(placeId: string): Promise<{
+            lat: number;
+            lng: number;
+            address: string;
+        }>;
+        markPlaceOnMapByQuery(query: string): Promise<{
+            lat: number;
+            lng: number;
+            address: string;
+        }>;
     }
 }
 /// <amd-module name="@scom/scom-map" />
@@ -166,8 +150,6 @@ declare module "@scom/scom-map" {
         viewMode?: ViewModeType;
         zoom?: number;
         address?: string;
-        showHeader?: boolean;
-        showFooter?: boolean;
     }
     global {
         namespace JSX {
@@ -188,19 +170,10 @@ declare module "@scom/scom-map" {
         init(): void;
         static create(options?: ScomMapElement, parent?: Container): Promise<ScomMap>;
         get long(): number;
-        set long(value: number);
         get lat(): number;
-        set lat(value: number);
         get viewMode(): ViewModeType;
-        set viewMode(value: ViewModeType);
         get address(): string;
-        set address(value: string);
         get zoom(): number;
-        set zoom(value: number);
-        get showFooter(): boolean;
-        set showFooter(value: boolean);
-        get showHeader(): boolean;
-        set showHeader(value: boolean);
         getConfigurators(): ({
             name: string;
             target: string;
@@ -247,7 +220,7 @@ declare module "@scom/scom-map" {
             setTag: any;
         })[];
         getData(): IData;
-        setData(value: IData): Promise<void>;
+        setData(value: Partial<IData>): Promise<void>;
         private getTag;
         private setTag;
         private _getActions;

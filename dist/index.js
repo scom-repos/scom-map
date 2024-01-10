@@ -409,17 +409,21 @@ define("@scom/scom-map/googleMap.ts", ["require", "exports"], function (require,
         }
         markPlaceOnMapByPlaceId(placeId) {
             if (!placeId)
-                return Promise.resolve();
+                return Promise.resolve({ lat: 0, lng: 0, address: '' });
             return new Promise((resolve, reject) => {
                 const request = {
                     placeId: placeId,
-                    fields: ['geometry']
+                    fields: ['name', 'formatted_address', 'geometry']
                 };
                 this.placeService.getDetails(request, (place, status) => {
                     if (status === google.maps.places.PlacesServiceStatus.OK) {
                         this.map.setCenter(place.geometry.location);
                         this.createMapMarker(place.geometry.location);
-                        resolve();
+                        resolve({
+                            lat: place.geometry.location.lat(),
+                            lng: place.geometry.location.lng(),
+                            address: `${place.name}, ${place.formatted_address}`
+                        });
                     }
                     else {
                         reject(status);
@@ -427,21 +431,28 @@ define("@scom/scom-map/googleMap.ts", ["require", "exports"], function (require,
                 });
             });
         }
-        markPlacesOnMap(query) {
+        markPlaceOnMapByQuery(query) {
             if (!query)
-                return Promise.resolve();
+                return Promise.resolve({ lat: 0, lng: 0, address: '' });
             return new Promise((resolve, reject) => {
                 const request = {
                     query,
-                    fields: ['name', 'geometry']
+                    fields: ['name', 'formatted_address', 'geometry']
                 };
                 this.placeService.findPlaceFromQuery(request, (results, status) => {
                     if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-                        for (let i = 0; i < results.length; i++) {
-                            this.createMapMarker(results[i].geometry.location);
-                        }
-                        this.map.setCenter(results[0].geometry.location);
-                        resolve();
+                        let firstResult = results[0];
+                        let firstLocation = firstResult.geometry.location;
+                        // for (let i = 0; i < results.length; i++) {
+                        //     this.createMapMarker(results[i].geometry.location);
+                        // }
+                        this.map.setCenter(firstLocation);
+                        this.createMapMarker(firstLocation);
+                        resolve({
+                            lat: firstLocation.lat(),
+                            lng: firstLocation.lng(),
+                            address: `${firstResult.name}, ${firstResult.formatted_address}`
+                        });
                     }
                     else {
                         reject(status);
@@ -487,8 +498,6 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
                 this.data.viewMode = this.getAttribute('viewMode', true, utils_2.DEFAULT_VIEW_MODE);
                 this.data.zoom = this.getAttribute('zoom', true, utils_2.DEFAULT_ZOOM);
                 this.data.address = this.getAttribute('address', true, '');
-                this.data.showHeader = this.getAttribute('showHeader', true, false);
-                this.data.showFooter = this.getAttribute('showFooter', true, false);
                 this.setData(this.data);
             }
         }
@@ -500,44 +509,17 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
         get long() {
             return this.data.long ?? utils_2.DEFAULT_LONG;
         }
-        set long(value) {
-            this.data.long = value;
-        }
         get lat() {
             return this.data.lat ?? utils_2.DEFAULT_LAT;
-        }
-        set lat(value) {
-            this.data.lat = value;
         }
         get viewMode() {
             return this.data.viewMode ?? utils_2.DEFAULT_VIEW_MODE;
         }
-        set viewMode(value) {
-            this.data.viewMode = value;
-        }
         get address() {
             return this.data.address ?? '';
         }
-        set address(value) {
-            this.data.address = value;
-        }
         get zoom() {
             return this.data.zoom ?? utils_2.DEFAULT_ZOOM;
-        }
-        set zoom(value) {
-            this.data.zoom = value;
-        }
-        get showFooter() {
-            return this.data.showFooter ?? false;
-        }
-        set showFooter(value) {
-            this.data.showFooter = value;
-        }
-        get showHeader() {
-            return this.data.showHeader ?? false;
-        }
-        set showHeader(value) {
-            this.data.showHeader = value;
         }
         getConfigurators() {
             const self = this;
@@ -595,13 +577,18 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
             return this.data;
         }
         async setData(value) {
-            this.data = value;
+            this.data = {
+                ...this.data,
+                ...value
+            };
             if (this.map) {
                 if (this.data.lat && this.data.long) {
-                    await this.map.markPlaceOnMapByLatLng(this.data.lat, this.data.long);
+                    this.map.markPlaceOnMapByLatLng(this.data.lat, this.data.long);
                 }
                 else if (this.data.address) {
-                    await this.map.markPlacesOnMap(this.data.address);
+                    let { lat, lng } = await this.map.markPlaceOnMapByQuery(this.data.address);
+                    this.data.lat = lat;
+                    this.data.long = lng;
                 }
             }
         }
@@ -678,7 +665,10 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
             return predictions;
         }
         async markPlaceOnMap(placeId) {
-            await this.map.markPlaceOnMapByPlaceId(placeId);
+            let { lat, lng, address } = await this.map.markPlaceOnMapByPlaceId(placeId);
+            this.data.lat = lat;
+            this.data.long = lng;
+            this.data.address = address;
         }
         render() {
             return (this.$render("i-panel", { id: "pnlMap", width: "100%", height: "100%" }));
