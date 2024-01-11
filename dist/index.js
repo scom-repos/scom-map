@@ -291,17 +291,6 @@ define("@scom/scom-map/googleMap.ts", ["require", "exports"], function (require,
                 map: this.map,
                 position: location,
             });
-        }
-        addMapMarker(lat, lng, caption) {
-            let point = {
-                'lat': lat,
-                'lng': lng
-            };
-            let marker = new google.maps.Marker({
-                position: point,
-                map: this.map,
-                title: caption
-            });
             this.markers.push(marker);
         }
         createLatLngObject(lat, lng) {
@@ -400,9 +389,16 @@ define("@scom/scom-map/googleMap.ts", ["require", "exports"], function (require,
                 });
             });
         }
+        clearMarkers() {
+            this.markers.forEach(marker => {
+                marker.setMap(null);
+            });
+            this.markers = [];
+        }
         markPlaceOnMapByLatLng(lat, lng) {
             if (!lat || !lng)
                 return;
+            this.clearMarkers();
             const location = new google.maps.LatLng(lat, lng);
             this.map.setCenter(location);
             this.createMapMarker(location);
@@ -410,6 +406,7 @@ define("@scom/scom-map/googleMap.ts", ["require", "exports"], function (require,
         markPlaceOnMapByPlaceId(placeId) {
             if (!placeId)
                 return Promise.resolve({ lat: 0, lng: 0, address: '' });
+            this.clearMarkers();
             return new Promise((resolve, reject) => {
                 const request = {
                     placeId: placeId,
@@ -434,6 +431,7 @@ define("@scom/scom-map/googleMap.ts", ["require", "exports"], function (require,
         markPlaceOnMapByQuery(query) {
             if (!query)
                 return Promise.resolve({ lat: 0, lng: 0, address: '' });
+            this.clearMarkers();
             return new Promise((resolve, reject) => {
                 const request = {
                     query,

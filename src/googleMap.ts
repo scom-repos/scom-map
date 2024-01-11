@@ -59,23 +59,11 @@ export class GoogleMap {
         return value;
     }
 
-    createMapMarker(location: any) {
+    createMapMarker(location: { lat: number, lng: number }) {
         if (!location) return;
         const marker = new google.maps.Marker({
             map: this.map,
             position: location,
-        });
-    }
-
-    addMapMarker(lat: number, lng: number, caption: string) {
-        let point = {
-            'lat': lat,
-            'lng': lng
-        }
-        let marker = new google.maps.Marker({
-            position: point, //latlng,
-            map: this.map,
-            title: caption
         });
         this.markers.push(marker);
     }
@@ -177,9 +165,16 @@ export class GoogleMap {
         });
     }
 
+    clearMarkers() {
+        this.markers.forEach(marker => {
+            marker.setMap(null);
+        });
+        this.markers = [];
+    }
+
     markPlaceOnMapByLatLng(lat: number, lng: number): void {
         if (!lat || !lng) return;
-    
+        this.clearMarkers();
         const location = new google.maps.LatLng(lat, lng);
         this.map.setCenter(location);
         this.createMapMarker(location);
@@ -187,6 +182,7 @@ export class GoogleMap {
 
     markPlaceOnMapByPlaceId(placeId: string): Promise<{ lat: number, lng: number, address: string }> {
         if (!placeId) return Promise.resolve({ lat: 0, lng: 0, address: '' })
+        this.clearMarkers();
         return new Promise((resolve, reject) => {
             const request = {
                 placeId: placeId,
@@ -211,6 +207,7 @@ export class GoogleMap {
 
     markPlaceOnMapByQuery(query: string): Promise<{ lat: number, lng: number, address: string }> {
         if (!query) return Promise.resolve({ lat: 0, lng: 0, address: '' });
+        this.clearMarkers();
         return new Promise((resolve, reject) => {
             const request = {
                 query,

@@ -115,8 +115,10 @@ declare module "@scom/scom-map/googleMap.ts" {
             lat: number;
             lng: number;
         };
-        createMapMarker(location: any): void;
-        addMapMarker(lat: number, lng: number, caption: string): void;
+        createMapMarker(location: {
+            lat: number;
+            lng: number;
+        }): void;
         createLatLngObject(lat: number, lng: number): any;
         searchPlaces(lat: number, lng: number, value: string): Promise<any>;
         getDistance(lat1: number, lng1: number, lat2: number, lng2: number): number;
@@ -125,6 +127,7 @@ declare module "@scom/scom-map/googleMap.ts" {
             lng: number;
         }>;
         getPlacePredictions(input: string): Promise<IMapPlacePrediction[]>;
+        clearMarkers(): void;
         markPlaceOnMapByLatLng(lat: number, lng: number): void;
         markPlaceOnMapByPlaceId(placeId: string): Promise<{
             lat: number;
