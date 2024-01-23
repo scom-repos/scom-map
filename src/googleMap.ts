@@ -29,7 +29,8 @@ export class GoogleMap {
         this.geocoder = new google.maps.Geocoder();
         this.map = new google.maps.Map(this.pnlMap, {
             zoom: 15,
-            mapTypeControl: false
+            mapTypeControl: false,
+            gestureHandling: 'cooperative'
         });
 
         if (!this.placeService)
