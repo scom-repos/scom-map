@@ -8,6 +8,18 @@ define("@scom/scom-map/interface.ts", ["require", "exports"], function (require,
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
 });
+define("@scom/scom-map/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    const Theme = components_1.Styles.Theme.ThemeVars;
+    components_1.Styles.cssRule('i-scom-map', {
+        $nest: {
+            '#pnlModule': {
+                height: '100%'
+            }
+        }
+    });
+});
 define("@scom/scom-map/store.ts", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -42,30 +54,6 @@ define("@scom/scom-map/store.ts", ["require", "exports"], function (require, exp
         return exports.state.apiUrl;
     };
     exports.getAPIUrl = getAPIUrl;
-});
-define("@scom/scom-map/data.json.ts", ["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    ///<amd-module name='@scom/scom-map/data.json.ts'/> 
-    exports.default = {
-        "apiKey": "AIzaSyDc7PnOq3Hxzq6dxeUVaY8WGLHIePl0swY",
-        "apiUrl": "https://www.google.com/maps/embed/v1/place",
-        "defaultBuilderData": {
-            "zoom": 15
-        }
-    };
-});
-define("@scom/scom-map/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    const Theme = components_1.Styles.Theme.ThemeVars;
-    components_1.Styles.cssRule('i-scom-map', {
-        $nest: {
-            '#pnlModule': {
-                height: '100%'
-            }
-        }
-    });
 });
 define("@scom/scom-map/utils.ts", ["require", "exports", "@scom/scom-map/store.ts"], function (require, exports, store_1) {
     "use strict";
@@ -150,94 +138,17 @@ define("@scom/scom-map/utils.ts", ["require", "exports", "@scom/scom-map/store.t
     };
     exports.getUrl = getUrl;
 });
-define("@scom/scom-map/config/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_2) {
+define("@scom/scom-map/data.json.ts", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const Theme = components_2.Styles.Theme.ThemeVars;
-    exports.default = components_2.Styles.cssRule('i-scom-map-config', {
-        $nest: {}
-    });
-});
-define("@scom/scom-map/config/index.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-map/utils.ts", "@scom/scom-map/config/index.css.ts"], function (require, exports, components_3, utils_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    let ScomMapConfig = class ScomMapConfig extends components_3.Module {
-        constructor(parent, options) {
-            super(parent, options);
-            this.searchTimer = null;
-            this.onInputChanged = this.onInputChanged.bind(this);
-        }
-        get data() {
-            return this._data;
-        }
-        set data(value) {
-            this._data = value;
-            this.renderUI();
-        }
-        async updateData() {
-            this._data = await this.formEl.getFormData();
-        }
-        renderUI() {
-            this.formEl.clearInnerHTML();
-            this.formEl.jsonSchema = (0, utils_1.getPropertiesSchema)();
-            this.formEl.formOptions = {
-                columnWidth: '100%',
-                columnsPerRow: 2,
-                confirmButtonOptions: {
-                    hide: true
-                }
-            };
-            this.formEl.renderForm();
-            this.formEl.clearFormData();
-            this.formEl.setFormData(this._data);
-            const url = (0, utils_1.getUrl)({ ...this._data });
-            this.iframeMap.url = url;
-            const inputs = this.formEl.querySelectorAll('[scope]');
-            for (let input of inputs) {
-                const inputEl = input;
-                // const scope: string = inputEl.getAttribute('scope', true, '')
-                // if (scope.includes('/long') || scope.includes('/lat'))
-                //   inputEl.readOnly = true
-                inputEl.onChanged = this.onInputChanged;
-            }
-        }
-        onInputChanged(target) {
-            if (this.searchTimer)
-                clearTimeout(this.searchTimer);
-            this.searchTimer = setTimeout(async () => {
-                const data = await this.formEl.getFormData();
-                const url = (0, utils_1.getUrl)({ ...data });
-                this.iframeMap.url = url;
-            }, 500);
-        }
-        disconnectedCallback() {
-            super.disconnectedCallback();
-            if (this.searchTimer)
-                clearTimeout(this.searchTimer);
-        }
-        async init() {
-            super.init();
-            const long = this.getAttribute('long', true, utils_1.DEFAULT_LONG);
-            const lat = this.getAttribute('lat', true, utils_1.DEFAULT_LAT);
-            const viewMode = this.getAttribute('viewMode', true, utils_1.DEFAULT_VIEW_MODE);
-            const zoom = this.getAttribute('zoom', true, utils_1.DEFAULT_ZOOM);
-            const address = this.getAttribute('address', true, '');
-            this.data = { long, lat, viewMode, zoom, address };
-        }
-        render() {
-            return (this.$render("i-panel", null,
-                this.$render("i-vstack", { gap: '0.5rem' },
-                    this.$render("i-panel", { id: 'pnlForm' },
-                        this.$render("i-form", { id: 'formEl' })),
-                    this.$render("i-panel", null,
-                        this.$render("i-iframe", { id: 'iframeMap', width: '100%', height: 500, display: 'flex' })))));
+    ///<amd-module name='@scom/scom-map/data.json.ts'/> 
+    exports.default = {
+        "apiKey": "AIzaSyDc7PnOq3Hxzq6dxeUVaY8WGLHIePl0swY",
+        "apiUrl": "https://www.google.com/maps/embed/v1/place",
+        "defaultBuilderData": {
+            "zoom": 15
         }
     };
-    ScomMapConfig = __decorate([
-        components_3.customModule,
-        (0, components_3.customElements)('i-scom-map-config')
-    ], ScomMapConfig);
-    exports.default = ScomMapConfig;
 });
 define("@scom/scom-map/googleMap.ts", ["require", "exports"], function (require, exports) {
     "use strict";
@@ -462,63 +373,138 @@ define("@scom/scom-map/googleMap.ts", ["require", "exports"], function (require,
     }
     exports.GoogleMap = GoogleMap;
 });
-define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/scom-map/store.ts", "@scom/scom-map/data.json.ts", "@scom/scom-map/utils.ts", "@scom/scom-map/config/index.tsx", "@scom/scom-map/googleMap.ts", "@scom/scom-map/index.css.ts"], function (require, exports, components_4, store_2, data_json_1, utils_2, index_1, googleMap_1) {
+define("@scom/scom-map/config/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const Theme = components_4.Styles.Theme.ThemeVars;
-    let ScomMap = class ScomMap extends components_4.Module {
+    const Theme = components_2.Styles.Theme.ThemeVars;
+    exports.default = components_2.Styles.cssRule('i-scom-map-config', {
+        $nest: {}
+    });
+});
+define("@scom/scom-map/config/index.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-map/utils.ts", "@scom/scom-map/config/index.css.ts"], function (require, exports, components_3, utils_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    let ScomMapConfig = class ScomMapConfig extends components_3.Module {
         constructor(parent, options) {
             super(parent, options);
+            this.searchTimer = null;
+            this.onInputChanged = this.onInputChanged.bind(this);
+        }
+        get data() {
+            return this._data;
+        }
+        set data(value) {
+            this._data = value;
+            this.renderUI();
+        }
+        async updateData() {
+            this._data = await this.formEl.getFormData();
+        }
+        renderUI() {
+            this.formEl.clearInnerHTML();
+            this.formEl.jsonSchema = (0, utils_1.getPropertiesSchema)();
+            this.formEl.formOptions = {
+                columnWidth: '100%',
+                columnsPerRow: 2,
+                confirmButtonOptions: {
+                    hide: true
+                }
+            };
+            this.formEl.renderForm();
+            this.formEl.clearFormData();
+            this.formEl.setFormData(this._data);
+            const url = (0, utils_1.getUrl)({ ...this._data });
+            this.iframeMap.url = url;
+            const inputs = this.formEl.querySelectorAll('[scope]');
+            for (let input of inputs) {
+                const inputEl = input;
+                // const scope: string = inputEl.getAttribute('scope', true, '')
+                // if (scope.includes('/long') || scope.includes('/lat'))
+                //   inputEl.readOnly = true
+                inputEl.onChanged = this.onInputChanged;
+            }
+        }
+        onInputChanged(target) {
+            if (this.searchTimer)
+                clearTimeout(this.searchTimer);
+            this.searchTimer = setTimeout(async () => {
+                const data = await this.formEl.getFormData();
+                const url = (0, utils_1.getUrl)({ ...data });
+                this.iframeMap.url = url;
+            }, 500);
+        }
+        disconnectedCallback() {
+            super.disconnectedCallback();
+            if (this.searchTimer)
+                clearTimeout(this.searchTimer);
+        }
+        async init() {
+            super.init();
+            const long = this.getAttribute('long', true, utils_1.DEFAULT_LONG);
+            const lat = this.getAttribute('lat', true, utils_1.DEFAULT_LAT);
+            const viewMode = this.getAttribute('viewMode', true, utils_1.DEFAULT_VIEW_MODE);
+            const zoom = this.getAttribute('zoom', true, utils_1.DEFAULT_ZOOM);
+            const address = this.getAttribute('address', true, '');
+            this.data = { long, lat, viewMode, zoom, address };
+        }
+        render() {
+            return (this.$render("i-panel", null,
+                this.$render("i-vstack", { gap: '0.5rem' },
+                    this.$render("i-panel", { id: 'pnlForm' },
+                        this.$render("i-form", { id: 'formEl' })),
+                    this.$render("i-panel", null,
+                        this.$render("i-iframe", { id: 'iframeMap', width: '100%', height: 500, display: 'flex' })))));
+        }
+    };
+    ScomMapConfig = __decorate([
+        components_3.customModule,
+        (0, components_3.customElements)('i-scom-map-config')
+    ], ScomMapConfig);
+    exports.default = ScomMapConfig;
+});
+define("@scom/scom-map/model.ts", ["require", "exports", "@ijstech/components", "@scom/scom-map/data.json.ts", "@scom/scom-map/store.ts", "@scom/scom-map/googleMap.ts", "@scom/scom-map/utils.ts", "@scom/scom-map/config/index.tsx"], function (require, exports, components_4, data_json_1, store_2, googleMap_1, utils_2, index_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Model = exports.DEFAULT_ZOOM = void 0;
+    const Theme = components_4.Styles.Theme.ThemeVars;
+    exports.DEFAULT_ZOOM = 14;
+    class Model {
+        constructor(module) {
             this.data = {};
             if (data_json_1.default) {
                 (0, store_2.setDataFromSCConfig)(data_json_1.default);
             }
-        }
-        async initGoogleMap() {
-            if (!window['google']?.maps)
-                return;
-            const pnlMap = this.pnlMap;
-            this.map = new googleMap_1.GoogleMap(pnlMap);
-            this.map.handleMapsAPICallback();
-        }
-        init() {
-            super.init();
-            const width = this.getAttribute('width', true);
-            const height = this.getAttribute('height', true);
-            this.setTag({
-                width: width ? this.width : '500px',
-                height: height ? this.height : '300px'
-            });
-            this.initGoogleMap();
-            const lazyLoad = this.getAttribute('lazyLoad', true, false);
-            if (!lazyLoad) {
-                this.data.long = this.getAttribute('long', true, utils_2.DEFAULT_LONG);
-                this.data.lat = this.getAttribute('lat', true, utils_2.DEFAULT_LAT);
-                this.data.viewMode = this.getAttribute('viewMode', true, utils_2.DEFAULT_VIEW_MODE);
-                this.data.zoom = this.getAttribute('zoom', true, utils_2.DEFAULT_ZOOM);
-                this.data.address = this.getAttribute('address', true, '');
-                this.setData(this.data);
-            }
-        }
-        static async create(options, parent) {
-            let self = new this(parent, options);
-            await self.ready();
-            return self;
+            this.module = module;
         }
         get long() {
             return this.data.long ?? utils_2.DEFAULT_LONG;
         }
+        set long(value) {
+            this.data.long = value;
+        }
         get lat() {
             return this.data.lat ?? utils_2.DEFAULT_LAT;
+        }
+        set lat(value) {
+            this.data.lat = value;
         }
         get viewMode() {
             return this.data.viewMode ?? utils_2.DEFAULT_VIEW_MODE;
         }
+        set viewMode(value) {
+            this.data.viewMode = value;
+        }
         get address() {
             return this.data.address ?? '';
         }
+        set address(value) {
+            this.data.address = value;
+        }
         get zoom() {
-            return this.data.zoom ?? utils_2.DEFAULT_ZOOM;
+            return this.data.zoom ?? exports.DEFAULT_ZOOM;
+        }
+        set zoom(value) {
+            this.data.zoom = value;
         }
         getConfigurators() {
             const self = this;
@@ -527,9 +513,7 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
                     name: 'Builder Configurator',
                     target: 'Builders',
                     getActions: () => {
-                        const propertiesSchema = (0, utils_2.getPropertiesSchema)();
-                        const themeSchema = (0, utils_2.getThemeSchema)();
-                        return this._getActions(propertiesSchema, themeSchema);
+                        return this._getActions();
                     },
                     getData: this.getData.bind(this),
                     setData: async (data) => {
@@ -543,9 +527,7 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
                     name: 'Emdedder Configurator',
                     target: 'Embedders',
                     getActions: () => {
-                        const propertiesSchema = (0, utils_2.getPropertiesSchema)();
-                        const themeSchema = (0, utils_2.getThemeSchema)(true);
-                        return this._getActions(propertiesSchema, themeSchema);
+                        return this._getActions();
                     },
                     getLinkParams: () => {
                         const data = this.data || {};
@@ -569,35 +551,21 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
                     setData: this.setData.bind(this),
                     getTag: this.getTag.bind(this),
                     setTag: this.setTag.bind(this)
+                },
+                {
+                    name: 'Editor',
+                    target: 'Editor',
+                    getActions: () => {
+                        return this._getActions();
+                    },
+                    getData: this.getData.bind(this),
+                    setData: this.setData.bind(this),
+                    getTag: this.getTag.bind(this),
+                    setTag: this.setTag.bind(this)
                 }
             ];
         }
-        getData() {
-            return this.data;
-        }
-        async setData(value) {
-            this.data = {
-                ...this.data,
-                ...value
-            };
-            if (this.map) {
-                if (this.data.lat && this.data.long) {
-                    this.map.markPlaceOnMapByLatLng(this.data.lat, this.data.long);
-                }
-                else if (this.data.address) {
-                    let { lat, lng } = await this.map.markPlaceOnMapByQuery(this.data.address);
-                    this.data.lat = lat;
-                    this.data.long = lng;
-                }
-            }
-        }
-        getTag() {
-            return this.tag;
-        }
-        async setTag(value) {
-            this.tag = value;
-        }
-        _getActions(settingSchema, themeSchema) {
+        _getActions() {
             const actions = [
                 {
                     name: 'Edit',
@@ -659,6 +627,37 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
             ];
             return actions;
         }
+        async setData(value) {
+            this.data = {
+                ...this.data,
+                ...value
+            };
+            if (this.map) {
+                if (this.data.lat && this.data.long) {
+                    this.map.markPlaceOnMapByLatLng(this.data.lat, this.data.long);
+                }
+                else if (this.data.address) {
+                    let { lat, lng } = await this.map.markPlaceOnMapByQuery(this.data.address);
+                    this.data.lat = lat;
+                    this.data.long = lng;
+                }
+            }
+        }
+        getData() {
+            return this.data;
+        }
+        getTag() {
+            return this.module.tag;
+        }
+        async setTag(value) {
+            this.module.tag = value;
+        }
+        async initGoogleMap(pnlMap) {
+            if (!window['google']?.maps)
+                return;
+            this.map = new googleMap_1.GoogleMap(pnlMap);
+            this.map.handleMapsAPICallback();
+        }
         async getPlacePredictions(input) {
             let predictions = await this.map.getPlacePredictions(input);
             return predictions;
@@ -669,13 +668,95 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
             this.data.long = lng;
             this.data.address = address;
         }
+    }
+    exports.Model = Model;
+});
+define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/scom-map/utils.ts", "@scom/scom-map/model.ts", "@scom/scom-map/index.css.ts"], function (require, exports, components_5, utils_3, model_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    let ScomMap = class ScomMap extends components_5.Module {
+        constructor(parent, options) {
+            super(parent, options);
+            this.initModel();
+        }
+        static async create(options, parent) {
+            let self = new this(parent, options);
+            await self.ready();
+            return self;
+        }
+        get long() {
+            return this.model.long ?? utils_3.DEFAULT_LONG;
+        }
+        get lat() {
+            return this.model.lat ?? utils_3.DEFAULT_LAT;
+        }
+        get viewMode() {
+            return this.model.viewMode ?? utils_3.DEFAULT_VIEW_MODE;
+        }
+        get address() {
+            return this.model.address ?? '';
+        }
+        get zoom() {
+            return this.model.zoom ?? utils_3.DEFAULT_ZOOM;
+        }
+        getConfigurators() {
+            this.initModel();
+            return this.model.getConfigurators();
+        }
+        getData() {
+            return this.model.getData();
+        }
+        async setData(value) {
+            await this.model.setData(value);
+        }
+        getTag() {
+            return this.tag;
+        }
+        async setTag(value) {
+            await this.model.setTag(value);
+        }
+        async getPlacePredictions(input) {
+            const predictions = await this.model.getPlacePredictions(input);
+            return predictions;
+        }
+        async markPlaceOnMap(placeId) {
+            await this.model.markPlaceOnMap(placeId);
+        }
+        async initGoogleMap() {
+            this.model.initGoogleMap(this.pnlMap);
+        }
+        initModel() {
+            if (!this.model) {
+                this.model = new model_1.Model(this);
+            }
+        }
+        init() {
+            super.init();
+            const width = this.getAttribute('width', true);
+            const height = this.getAttribute('height', true);
+            this.setTag({
+                width: width ? this.width : '500px',
+                height: height ? this.height : '300px'
+            });
+            this.initGoogleMap();
+            const lazyLoad = this.getAttribute('lazyLoad', true, false);
+            if (!lazyLoad) {
+                this.model.long = this.getAttribute('long', true, utils_3.DEFAULT_LONG);
+                this.model.lat = this.getAttribute('lat', true, utils_3.DEFAULT_LAT);
+                this.model.viewMode = this.getAttribute('viewMode', true, utils_3.DEFAULT_VIEW_MODE);
+                this.model.zoom = this.getAttribute('zoom', true, utils_3.DEFAULT_ZOOM);
+                this.model.address = this.getAttribute('address', true, '');
+                const data = this.model.getData();
+                this.setData(data);
+            }
+        }
         render() {
             return (this.$render("i-panel", { id: "pnlMap", width: "100%", height: "100%" }));
         }
     };
     ScomMap = __decorate([
-        components_4.customModule,
-        (0, components_4.customElements)('i-scom-map')
+        components_5.customModule,
+        (0, components_5.customElements)('i-scom-map')
     ], ScomMap);
     exports.default = ScomMap;
 });
