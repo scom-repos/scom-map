@@ -373,100 +373,10 @@ define("@scom/scom-map/googleMap.ts", ["require", "exports"], function (require,
     }
     exports.GoogleMap = GoogleMap;
 });
-define("@scom/scom-map/config/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_2) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    const Theme = components_2.Styles.Theme.ThemeVars;
-    exports.default = components_2.Styles.cssRule('i-scom-map-config', {
-        $nest: {}
-    });
-});
-define("@scom/scom-map/config/index.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-map/utils.ts", "@scom/scom-map/config/index.css.ts"], function (require, exports, components_3, utils_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    let ScomMapConfig = class ScomMapConfig extends components_3.Module {
-        constructor(parent, options) {
-            super(parent, options);
-            this.searchTimer = null;
-            this.onInputChanged = this.onInputChanged.bind(this);
-        }
-        get data() {
-            return this._data;
-        }
-        set data(value) {
-            this._data = value;
-            this.renderUI();
-        }
-        async updateData() {
-            this._data = await this.formEl.getFormData();
-        }
-        renderUI() {
-            this.formEl.clearInnerHTML();
-            this.formEl.jsonSchema = (0, utils_1.getPropertiesSchema)();
-            this.formEl.formOptions = {
-                columnWidth: '100%',
-                columnsPerRow: 2,
-                confirmButtonOptions: {
-                    hide: true
-                }
-            };
-            this.formEl.renderForm();
-            this.formEl.clearFormData();
-            this.formEl.setFormData(this._data);
-            const url = (0, utils_1.getUrl)({ ...this._data });
-            this.iframeMap.url = url;
-            const inputs = this.formEl.querySelectorAll('[scope]');
-            for (let input of inputs) {
-                const inputEl = input;
-                // const scope: string = inputEl.getAttribute('scope', true, '')
-                // if (scope.includes('/long') || scope.includes('/lat'))
-                //   inputEl.readOnly = true
-                inputEl.onChanged = this.onInputChanged;
-            }
-        }
-        onInputChanged(target) {
-            if (this.searchTimer)
-                clearTimeout(this.searchTimer);
-            this.searchTimer = setTimeout(async () => {
-                const data = await this.formEl.getFormData();
-                const url = (0, utils_1.getUrl)({ ...data });
-                this.iframeMap.url = url;
-            }, 500);
-        }
-        disconnectedCallback() {
-            super.disconnectedCallback();
-            if (this.searchTimer)
-                clearTimeout(this.searchTimer);
-        }
-        async init() {
-            super.init();
-            const long = this.getAttribute('long', true, utils_1.DEFAULT_LONG);
-            const lat = this.getAttribute('lat', true, utils_1.DEFAULT_LAT);
-            const viewMode = this.getAttribute('viewMode', true, utils_1.DEFAULT_VIEW_MODE);
-            const zoom = this.getAttribute('zoom', true, utils_1.DEFAULT_ZOOM);
-            const address = this.getAttribute('address', true, '');
-            this.data = { long, lat, viewMode, zoom, address };
-        }
-        render() {
-            return (this.$render("i-panel", null,
-                this.$render("i-vstack", { gap: '0.5rem' },
-                    this.$render("i-panel", { id: 'pnlForm' },
-                        this.$render("i-form", { id: 'formEl' })),
-                    this.$render("i-panel", null,
-                        this.$render("i-iframe", { id: 'iframeMap', width: '100%', height: 500, display: 'flex' })))));
-        }
-    };
-    ScomMapConfig = __decorate([
-        components_3.customModule,
-        (0, components_3.customElements)('i-scom-map-config')
-    ], ScomMapConfig);
-    exports.default = ScomMapConfig;
-});
-define("@scom/scom-map/model.ts", ["require", "exports", "@ijstech/components", "@scom/scom-map/data.json.ts", "@scom/scom-map/store.ts", "@scom/scom-map/googleMap.ts", "@scom/scom-map/utils.ts", "@scom/scom-map/config/index.tsx"], function (require, exports, components_4, data_json_1, store_2, googleMap_1, utils_2, index_1) {
+define("@scom/scom-map/model.ts", ["require", "exports", "@scom/scom-map/data.json.ts", "@scom/scom-map/store.ts", "@scom/scom-map/googleMap.ts", "@scom/scom-map/utils.ts"], function (require, exports, data_json_1, store_2, googleMap_1, utils_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Model = exports.DEFAULT_ZOOM = void 0;
-    const Theme = components_4.Styles.Theme.ThemeVars;
     exports.DEFAULT_ZOOM = 14;
     class Model {
         constructor(module) {
@@ -477,19 +387,19 @@ define("@scom/scom-map/model.ts", ["require", "exports", "@ijstech/components", 
             this.module = module;
         }
         get long() {
-            return this.data.long ?? utils_2.DEFAULT_LONG;
+            return this.data.long ?? utils_1.DEFAULT_LONG;
         }
         set long(value) {
             this.data.long = value;
         }
         get lat() {
-            return this.data.lat ?? utils_2.DEFAULT_LAT;
+            return this.data.lat ?? utils_1.DEFAULT_LAT;
         }
         set lat(value) {
             this.data.lat = value;
         }
         get viewMode() {
-            return this.data.viewMode ?? utils_2.DEFAULT_VIEW_MODE;
+            return this.data.viewMode ?? utils_1.DEFAULT_VIEW_MODE;
         }
         set viewMode(value) {
             this.data.viewMode = value;
@@ -506,14 +416,14 @@ define("@scom/scom-map/model.ts", ["require", "exports", "@ijstech/components", 
         set zoom(value) {
             this.data.zoom = value;
         }
-        getConfigurators() {
+        getConfigurators(formAction) {
             const self = this;
             return [
                 {
                     name: 'Builder Configurator',
                     target: 'Builders',
                     getActions: () => {
-                        return this._getActions();
+                        return this._getActions(formAction);
                     },
                     getData: this.getData.bind(this),
                     setData: async (data) => {
@@ -527,7 +437,7 @@ define("@scom/scom-map/model.ts", ["require", "exports", "@ijstech/components", 
                     name: 'Emdedder Configurator',
                     target: 'Embedders',
                     getActions: () => {
-                        return this._getActions();
+                        return this._getActions(formAction);
                     },
                     getLinkParams: () => {
                         const data = this.data || {};
@@ -556,7 +466,7 @@ define("@scom/scom-map/model.ts", ["require", "exports", "@ijstech/components", 
                     name: 'Editor',
                     target: 'Editor',
                     getActions: () => {
-                        return this._getActions();
+                        return this._getActions(formAction);
                     },
                     getData: this.getData.bind(this),
                     setData: this.setData.bind(this),
@@ -565,7 +475,7 @@ define("@scom/scom-map/model.ts", ["require", "exports", "@ijstech/components", 
                 }
             ];
         }
-        _getActions() {
+        _getActions(formAction) {
             const actions = [
                 {
                     name: 'Edit',
@@ -598,31 +508,7 @@ define("@scom/scom-map/model.ts", ["require", "exports", "@ijstech/components", 
                             redo: () => { },
                         };
                     },
-                    customUI: {
-                        render: (data, onConfirm) => {
-                            const vstack = new components_4.VStack(null, { gap: '1rem' });
-                            const config = new index_1.default(null, { ...this.data });
-                            const hstack = new components_4.HStack(null, {
-                                verticalAlignment: 'center',
-                                horizontalAlignment: 'end'
-                            });
-                            const button = new components_4.Button(null, {
-                                caption: 'Confirm',
-                                height: 40,
-                                font: { color: Theme.colors.primary.contrastText }
-                            });
-                            hstack.append(button);
-                            vstack.append(config);
-                            vstack.append(hstack);
-                            button.onClick = async () => {
-                                await config.updateData();
-                                if (onConfirm) {
-                                    onConfirm(true, { ...this.data, ...config.data });
-                                }
-                            };
-                            return vstack;
-                        }
-                    }
+                    customUI: formAction
                 },
             ];
             return actions;
@@ -671,10 +557,100 @@ define("@scom/scom-map/model.ts", ["require", "exports", "@ijstech/components", 
     }
     exports.Model = Model;
 });
-define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/scom-map/utils.ts", "@scom/scom-map/model.ts", "@scom/scom-map/index.css.ts"], function (require, exports, components_5, utils_3, model_1) {
+define("@scom/scom-map/config/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    let ScomMap = class ScomMap extends components_5.Module {
+    const Theme = components_2.Styles.Theme.ThemeVars;
+    exports.default = components_2.Styles.cssRule('i-scom-map-config', {
+        $nest: {}
+    });
+});
+define("@scom/scom-map/config/index.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-map/utils.ts", "@scom/scom-map/config/index.css.ts"], function (require, exports, components_3, utils_2) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    let ScomMapConfig = class ScomMapConfig extends components_3.Module {
+        constructor(parent, options) {
+            super(parent, options);
+            this.searchTimer = null;
+            this.onInputChanged = this.onInputChanged.bind(this);
+        }
+        get data() {
+            return this._data;
+        }
+        set data(value) {
+            this._data = value;
+            this.renderUI();
+        }
+        async updateData() {
+            this._data = await this.formEl.getFormData();
+        }
+        renderUI() {
+            this.formEl.clearInnerHTML();
+            this.formEl.jsonSchema = (0, utils_2.getPropertiesSchema)();
+            this.formEl.formOptions = {
+                columnWidth: '100%',
+                columnsPerRow: 2,
+                confirmButtonOptions: {
+                    hide: true
+                }
+            };
+            this.formEl.renderForm();
+            this.formEl.clearFormData();
+            this.formEl.setFormData(this._data);
+            const url = (0, utils_2.getUrl)({ ...this._data });
+            this.iframeMap.url = url;
+            const inputs = this.formEl.querySelectorAll('[scope]');
+            for (let input of inputs) {
+                const inputEl = input;
+                // const scope: string = inputEl.getAttribute('scope', true, '')
+                // if (scope.includes('/long') || scope.includes('/lat'))
+                //   inputEl.readOnly = true
+                inputEl.onChanged = this.onInputChanged;
+            }
+        }
+        onInputChanged(target) {
+            if (this.searchTimer)
+                clearTimeout(this.searchTimer);
+            this.searchTimer = setTimeout(async () => {
+                const data = await this.formEl.getFormData();
+                const url = (0, utils_2.getUrl)({ ...data });
+                this.iframeMap.url = url;
+            }, 500);
+        }
+        disconnectedCallback() {
+            super.disconnectedCallback();
+            if (this.searchTimer)
+                clearTimeout(this.searchTimer);
+        }
+        async init() {
+            super.init();
+            const long = this.getAttribute('long', true, utils_2.DEFAULT_LONG);
+            const lat = this.getAttribute('lat', true, utils_2.DEFAULT_LAT);
+            const viewMode = this.getAttribute('viewMode', true, utils_2.DEFAULT_VIEW_MODE);
+            const zoom = this.getAttribute('zoom', true, utils_2.DEFAULT_ZOOM);
+            const address = this.getAttribute('address', true, '');
+            this.data = { long, lat, viewMode, zoom, address };
+        }
+        render() {
+            return (this.$render("i-panel", null,
+                this.$render("i-vstack", { gap: '0.5rem' },
+                    this.$render("i-panel", { id: 'pnlForm' },
+                        this.$render("i-form", { id: 'formEl' })),
+                    this.$render("i-panel", null,
+                        this.$render("i-iframe", { id: 'iframeMap', width: '100%', height: 500, display: 'flex' })))));
+        }
+    };
+    ScomMapConfig = __decorate([
+        components_3.customModule,
+        (0, components_3.customElements)('i-scom-map-config')
+    ], ScomMapConfig);
+    exports.default = ScomMapConfig;
+});
+define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/scom-map/utils.ts", "@scom/scom-map/model.ts", "@scom/scom-map/config/index.tsx", "@scom/scom-map/index.css.ts"], function (require, exports, components_4, utils_3, model_1, index_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    const Theme = components_4.Styles.Theme.ThemeVars;
+    let ScomMap = class ScomMap extends components_4.Module {
         constructor(parent, options) {
             super(parent, options);
             this.initModel();
@@ -699,9 +675,38 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
         get zoom() {
             return this.model.zoom ?? utils_3.DEFAULT_ZOOM;
         }
+        customUI() {
+            return {
+                render: (data, onConfirm) => {
+                    const vstack = new components_4.VStack(null, { gap: '1rem' });
+                    const config = new index_1.default(null, { ...this.model.getData() });
+                    const hstack = new components_4.HStack(null, {
+                        verticalAlignment: 'center',
+                        horizontalAlignment: 'end'
+                    });
+                    const button = new components_4.Button(null, {
+                        caption: 'Confirm',
+                        height: 40,
+                        font: { color: Theme.colors.primary.contrastText },
+                        padding: { left: '1rem', right: '1rem' }
+                    });
+                    hstack.append(button);
+                    vstack.append(config);
+                    vstack.append(hstack);
+                    button.onClick = async () => {
+                        await config.updateData();
+                        if (onConfirm) {
+                            onConfirm(true, { ...this.model.getData(), ...config.data });
+                        }
+                    };
+                    return vstack;
+                }
+            };
+        }
         getConfigurators() {
             this.initModel();
-            return this.model.getConfigurators();
+            const customUI = this.customUI();
+            return this.model.getConfigurators(customUI);
         }
         getData() {
             return this.model.getData();
@@ -723,7 +728,7 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
             await this.model.markPlaceOnMap(placeId);
         }
         async initGoogleMap() {
-            this.model.initGoogleMap(this.pnlMap);
+            await this.model.initGoogleMap(this.pnlMap);
         }
         initModel() {
             if (!this.model) {
@@ -755,8 +760,8 @@ define("@scom/scom-map", ["require", "exports", "@ijstech/components", "@scom/sc
         }
     };
     ScomMap = __decorate([
-        components_5.customModule,
-        (0, components_5.customElements)('i-scom-map')
+        components_4.customModule,
+        (0, components_4.customElements)('i-scom-map')
     ], ScomMap);
     exports.default = ScomMap;
 });

@@ -1,3 +1,5 @@
+import { VStack } from "@ijstech/components";
+
 export type ViewModeType = 'roadmap' | 'satellite'
 
 export interface IData {
@@ -15,4 +17,8 @@ export interface IMapPlacePrediction {
     mainText: string;
     secondaryText?: string;
     types: string[];
+}
+
+export interface ICustomUI {
+    render: () => VStack;
 }
