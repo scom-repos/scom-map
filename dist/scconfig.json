@@ -3,8 +3,6 @@
     "type": "widget",
     "version": "0.1.9",
     "dependencies": [
-        "@ijstech/components",
-        "@ijstech/eth-contract",
-        "@ijstech/eth-wallet"
+        "@ijstech/components"
     ]
 }
