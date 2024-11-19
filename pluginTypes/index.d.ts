@@ -1,6 +1,6 @@
-/// <reference path="@ijstech/components/index.d.ts" />
 /// <amd-module name="@scom/scom-map/interface.ts" />
 declare module "@scom/scom-map/interface.ts" {
+    import { VStack } from "@ijstech/components";
     export type ViewModeType = 'roadmap' | 'satellite';
     export interface IData {
         long?: number;
@@ -16,6 +16,9 @@ declare module "@scom/scom-map/interface.ts" {
         mainText: string;
         secondaryText?: string;
         types: string[];
+    }
+    export interface ICustomUI {
+        render: () => VStack;
     }
 }
 /// <amd-module name="@scom/scom-map/index.css.ts" />
@@ -102,6 +105,77 @@ declare module "@scom/scom-map/googleMap.ts" {
         }>;
     }
 }
+/// <amd-module name="@scom/scom-map/model.ts" />
+declare module "@scom/scom-map/model.ts" {
+    import { Module, Panel } from '@ijstech/components';
+    import { ICustomUI, IData, ViewModeType } from "@scom/scom-map/interface.ts";
+    export const DEFAULT_ZOOM = 14;
+    export class Model {
+        private module;
+        private data;
+        private map;
+        constructor(module: Module);
+        get long(): number;
+        set long(value: number);
+        get lat(): number;
+        set lat(value: number);
+        get viewMode(): ViewModeType;
+        set viewMode(value: ViewModeType);
+        get address(): string;
+        set address(value: string);
+        get zoom(): number;
+        set zoom(value: number);
+        getConfigurators(formAction: ICustomUI): ({
+            name: string;
+            target: string;
+            getActions: () => {
+                name: string;
+                icon: string;
+                command: (builder: any, userInputData: any) => {
+                    execute: () => void;
+                    undo: () => void;
+                    redo: () => void;
+                };
+                customUI: ICustomUI;
+            }[];
+            getLinkParams: () => {
+                data: string;
+            };
+            setLinkParams: (params: any) => Promise<void>;
+            getData: any;
+            setData: any;
+            getTag: any;
+            setTag: any;
+        } | {
+            name: string;
+            target: string;
+            getActions: () => {
+                name: string;
+                icon: string;
+                command: (builder: any, userInputData: any) => {
+                    execute: () => void;
+                    undo: () => void;
+                    redo: () => void;
+                };
+                customUI: ICustomUI;
+            }[];
+            getData: any;
+            setData: any;
+            getTag: any;
+            setTag: any;
+            getLinkParams?: undefined;
+            setLinkParams?: undefined;
+        })[];
+        private _getActions;
+        setData(value: IData): Promise<void>;
+        getData(): IData;
+        getTag(): any;
+        setTag(value: any): Promise<void>;
+        initGoogleMap(pnlMap: Panel): Promise<void>;
+        getPlacePredictions(input: string): Promise<import("@scom/scom-map/interface.ts").IMapPlacePrediction[]>;
+        markPlaceOnMap(placeId: string): Promise<void>;
+    }
+}
 /// <amd-module name="@scom/scom-map/config/index.css.ts" />
 declare module "@scom/scom-map/config/index.css.ts" {
     const _default_1: void;
@@ -142,81 +216,6 @@ declare module "@scom/scom-map/config/index.tsx" {
         render(): any;
     }
 }
-/// <amd-module name="@scom/scom-map/model.ts" />
-declare module "@scom/scom-map/model.ts" {
-    import { Module, Panel, VStack } from '@ijstech/components';
-    import { IData, ViewModeType } from "@scom/scom-map/interface.ts";
-    export const DEFAULT_ZOOM = 14;
-    export class Model {
-        private module;
-        private data;
-        private map;
-        constructor(module: Module);
-        get long(): number;
-        set long(value: number);
-        get lat(): number;
-        set lat(value: number);
-        get viewMode(): ViewModeType;
-        set viewMode(value: ViewModeType);
-        get address(): string;
-        set address(value: string);
-        get zoom(): number;
-        set zoom(value: number);
-        getConfigurators(): ({
-            name: string;
-            target: string;
-            getActions: () => {
-                name: string;
-                icon: string;
-                command: (builder: any, userInputData: any) => {
-                    execute: () => void;
-                    undo: () => void;
-                    redo: () => void;
-                };
-                customUI: {
-                    render: (data?: any, onConfirm?: (result: boolean, data: any) => void) => VStack;
-                };
-            }[];
-            getLinkParams: () => {
-                data: string;
-            };
-            setLinkParams: (params: any) => Promise<void>;
-            getData: any;
-            setData: any;
-            getTag: any;
-            setTag: any;
-        } | {
-            name: string;
-            target: string;
-            getActions: () => {
-                name: string;
-                icon: string;
-                command: (builder: any, userInputData: any) => {
-                    execute: () => void;
-                    undo: () => void;
-                    redo: () => void;
-                };
-                customUI: {
-                    render: (data?: any, onConfirm?: (result: boolean, data: any) => void) => VStack;
-                };
-            }[];
-            getData: any;
-            setData: any;
-            getTag: any;
-            setTag: any;
-            getLinkParams?: undefined;
-            setLinkParams?: undefined;
-        })[];
-        private _getActions;
-        setData(value: IData): Promise<void>;
-        getData(): IData;
-        getTag(): any;
-        setTag(value: any): Promise<void>;
-        initGoogleMap(pnlMap: Panel): Promise<void>;
-        getPlacePredictions(input: string): Promise<import("@scom/scom-map/interface.ts").IMapPlacePrediction[]>;
-        markPlaceOnMap(placeId: string): Promise<void>;
-    }
-}
 /// <amd-module name="@scom/scom-map" />
 declare module "@scom/scom-map" {
     import { Module, Container, ControlElement } from '@ijstech/components';
@@ -250,6 +249,7 @@ declare module "@scom/scom-map" {
         get viewMode(): ViewModeType;
         get address(): string;
         get zoom(): number;
+        private customUI;
         getConfigurators(): ({
             name: string;
             target: string;
@@ -261,9 +261,7 @@ declare module "@scom/scom-map" {
                     undo: () => void;
                     redo: () => void;
                 };
-                customUI: {
-                    render: (data?: any, onConfirm?: (result: boolean, data: any) => void) => import("@ijstech/components").VStack;
-                };
+                customUI: import("@scom/scom-map/interface.ts").ICustomUI;
             }[];
             getLinkParams: () => {
                 data: string;
@@ -284,9 +282,7 @@ declare module "@scom/scom-map" {
                     undo: () => void;
                     redo: () => void;
                 };
-                customUI: {
-                    render: (data?: any, onConfirm?: (result: boolean, data: any) => void) => import("@ijstech/components").VStack;
-                };
+                customUI: import("@scom/scom-map/interface.ts").ICustomUI;
             }[];
             getData: any;
             setData: any;

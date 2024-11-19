@@ -1,11 +1,9 @@
-import { Module, Panel, Button, HStack, VStack, Styles } from '@ijstech/components';
+import { Module, Panel } from '@ijstech/components';
 import dataJson from './data.json';
-import { IData, ViewModeType } from './interface';
+import { ICustomUI, IData, ViewModeType } from './interface';
 import { setDataFromSCConfig } from './store';
 import { GoogleMap } from './googleMap';
 import { DEFAULT_LAT, DEFAULT_LONG, DEFAULT_VIEW_MODE } from './utils';
-import ScomMapConfig from './config/index';
-const Theme = Styles.Theme.ThemeVars
 
 export const DEFAULT_ZOOM = 14;
 
@@ -56,14 +54,14 @@ export class Model {
     this.data.zoom = value;
   }
 
-  getConfigurators() {
+  getConfigurators(formAction: ICustomUI) {
     const self = this;
     return [
       {
         name: 'Builder Configurator',
         target: 'Builders',
         getActions: () => {
-          return this._getActions();
+          return this._getActions(formAction);
         },
         getData: this.getData.bind(this),
         setData: async (data: IData) => {
@@ -77,7 +75,7 @@ export class Model {
         name: 'Emdedder Configurator',
         target: 'Embedders',
         getActions: () => {
-          return this._getActions();
+          return this._getActions(formAction);
         },
         getLinkParams: () => {
           const data = this.data || {};
@@ -106,7 +104,7 @@ export class Model {
         name: 'Editor',
         target: 'Editor',
         getActions: () => {
-          return this._getActions()
+          return this._getActions(formAction)
         },
         getData: this.getData.bind(this),
         setData: this.setData.bind(this),
@@ -116,7 +114,7 @@ export class Model {
     ]
   }
 
-  private _getActions() {
+  private _getActions(formAction: ICustomUI) {
     const actions = [
       {
         name: 'Edit',
@@ -141,31 +139,7 @@ export class Model {
             redo: () => { },
           }
         },
-        customUI: {
-          render: (data?: any, onConfirm?: (result: boolean, data: any) => void) => {
-            const vstack = new VStack(null, { gap: '1rem' });
-            const config = new ScomMapConfig(null, { ...this.data });
-            const hstack = new HStack(null, {
-              verticalAlignment: 'center',
-              horizontalAlignment: 'end'
-            });
-            const button = new Button(null, {
-              caption: 'Confirm',
-              height: 40,
-              font: { color: Theme.colors.primary.contrastText }
-            });
-            hstack.append(button);
-            vstack.append(config);
-            vstack.append(hstack);
-            button.onClick = async () => {
-              await config.updateData();
-              if (onConfirm) {
-                onConfirm(true, { ...this.data, ...config.data });
-              }
-            }
-            return vstack;
-          }
-        }
+        customUI: formAction
       },
     ]
     return actions;

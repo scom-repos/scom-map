@@ -4,7 +4,11 @@ import {
   Container,
   ControlElement,
   customElements,
-  Panel
+  Panel,
+  VStack,
+  HStack,
+  Button,
+  Styles
 } from '@ijstech/components'
 import { IData, ViewModeType } from './interface'
 import './index.css'
@@ -15,6 +19,8 @@ import {
   DEFAULT_ZOOM
 } from './utils';
 import { Model } from './model';
+import ScomMapConfig from './config/index';
+const Theme = Styles.Theme.ThemeVars
 
 interface ScomMapElement extends ControlElement {
   lazyLoad?: boolean;
@@ -74,9 +80,39 @@ export default class ScomMap extends Module {
     return this.model.zoom ?? DEFAULT_ZOOM;
   }
 
+  private customUI() {
+    return {
+      render: (data?: any, onConfirm?: (result: boolean, data: any) => void) => {
+        const vstack = new VStack(null, { gap: '1rem' });
+        const config = new ScomMapConfig(null, { ...this.model.getData() });
+        const hstack = new HStack(null, {
+          verticalAlignment: 'center',
+          horizontalAlignment: 'end'
+        });
+        const button = new Button(null, {
+          caption: 'Confirm',
+          height: 40,
+          font: { color: Theme.colors.primary.contrastText },
+          padding: { left: '1rem', right: '1rem' }
+        });
+        hstack.append(button);
+        vstack.append(config);
+        vstack.append(hstack);
+        button.onClick = async () => {
+          await config.updateData();
+          if (onConfirm) {
+            onConfirm(true, { ...this.model.getData(), ...config.data });
+          }
+        }
+        return vstack;
+      }
+    }
+  }
+
   getConfigurators() {
     this.initModel();
-    return this.model.getConfigurators();
+    const customUI = this.customUI();
+    return this.model.getConfigurators(customUI);
   }
 
   getData() {
@@ -105,7 +141,7 @@ export default class ScomMap extends Module {
   }
 
   async initGoogleMap() {
-    this.model.initGoogleMap(this.pnlMap);
+    await this.model.initGoogleMap(this.pnlMap);
   }
 
   private initModel() {
